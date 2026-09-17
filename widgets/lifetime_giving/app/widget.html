@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lifetime Giving</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://live.zwidgets.com/js-sdk/1.2/ZohoEmbeddedAppSDK.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -28,7 +27,6 @@ body {
 #widget { display: none; }
 
 .wg-header { font-size: 10px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #1B5E4F; margin-bottom: 14px; }
-
 .wg-headline { font-size: 30px; font-weight: 700; color: #1B5E4F; letter-spacing: -0.025em; line-height: 1; }
 .wg-headline-sub { font-size: 11px; color: #9A9590; margin-top: 3px; margin-bottom: 18px; }
 
@@ -64,37 +62,13 @@ body {
 </div>
 
 <script>
-ZOHO.embeddedApp.on("PageLoad", function(data) {
-    var entityId = data.EntityId;
-    ZOHO.CRM.API.getRecord({
-        Entity: "Contacts",
-        RecordID: entityId
-    }).then(function(resp) {
-        hide("loading");
-        if (!resp.data || resp.data.length === 0) { show("no-data"); return; }
-
-        var rec       = resp.data[0];
-        var lifetime  = parseFloat(rec.Lifetime_Giving_Total)   || 0;
-        var giftAid   = parseFloat(rec.Gift_Aid_Lifetime_Total)  || 0;
-        var lastAmt   = parseFloat(rec.Last_Donation_Amount)     || 0;
-        var lastDate  = rec.Last_Donation_Date                   || null;
-        var breakdown = rec.Giving_Year_Breakdown                || "";
-        var updated   = rec.Giving_Last_Updated                  || null;
-
-        if (lifetime === 0 && !breakdown) { show("no-data"); return; }
-        renderWidget(lifetime, giftAid, lastAmt, lastDate, breakdown, updated);
-    }).catch(function() {
-        document.getElementById("loading").textContent = "Unable to load data.";
-    });
-});
-
-ZOHO.embeddedApp.init();
-
 function show(id) { document.getElementById(id).style.display = "block"; }
 function hide(id) { document.getElementById(id).style.display = "none"; }
 
 function fmt(n) {
-    return "£" + parseFloat(n).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    var num = parseFloat(n);
+    if (isNaN(num)) return "£0.00";
+    return "£" + num.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function fmtDate(d) {
@@ -157,6 +131,28 @@ function renderWidget(lifetime, giftAid, lastAmt, lastDate, breakdown, updated) 
         });
     });
 }
+
+// Read values from URL parameters
+window.addEventListener("DOMContentLoaded", function() {
+    var params   = new URLSearchParams(window.location.search);
+    var lifetime = params.get("lifetime") || "";
+    var giftAid  = params.get("giftaid")  || "";
+    var lastAmt  = params.get("lastamt")  || "";
+    var lastDate = params.get("lastdate") || "";
+    var breakdown= params.get("breakdown")|| "";
+    var updated  = params.get("updated")  || "";
+
+    hide("loading");
+
+    // If Zoho didn't replace the merge tags, params will contain
+    // the literal placeholder text — treat as no data
+    if (!lifetime || lifetime.indexOf("${") > -1 || (parseFloat(lifetime) === 0 && !breakdown)) {
+        show("no-data");
+        return;
+    }
+
+    renderWidget(lifetime, giftAid, lastAmt, lastDate, breakdown, updated);
+});
 </script>
 </body>
 </html>
