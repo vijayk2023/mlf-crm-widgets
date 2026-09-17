@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lifetime Giving</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://crm.zoho.com/crm/javascript/v2/ZohoCRM.min.js"></script>
+<script src="https://live.zwidgets.com/js-sdk/1.0.5/ZohoEmbededAppSDK.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: #F7F4EF;
@@ -16,29 +17,22 @@ body {
     line-height: 1.45;
     padding: 18px 20px 20px;
 }
-
 #loading { color: #9A9590; font-size: 12px; padding: 20px 0; text-align: center; }
-
 #no-data { display: none; padding: 24px 0 12px; text-align: center; }
 .empty-icon { font-size: 22px; color: #C4BFB6; margin-bottom: 10px; }
 .empty-title { font-size: 13px; font-weight: 600; color: #5A5550; margin-bottom: 6px; }
 .empty-hint { font-size: 12px; color: #9A9590; line-height: 1.55; max-width: 220px; margin: 0 auto; }
-
 #widget { display: none; }
-
 .wg-header { font-size: 10px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #1B5E4F; margin-bottom: 14px; }
 .wg-headline { font-size: 30px; font-weight: 700; color: #1B5E4F; letter-spacing: -0.025em; line-height: 1; }
 .wg-headline-sub { font-size: 11px; color: #9A9590; margin-top: 3px; margin-bottom: 18px; }
-
 .wg-stats { display: flex; gap: 0; border-top: 1px solid #E4E0D8; padding-top: 14px; margin-bottom: 4px; }
 .wg-stat { flex: 1; padding-right: 12px; }
 .wg-stat + .wg-stat { padding-right: 0; padding-left: 12px; border-left: 1px solid #E4E0D8; }
 .wg-stat-val { font-size: 16px; font-weight: 600; color: #1C1C1C; letter-spacing: -0.01em; }
 .wg-amber { color: #B8720A; }
 .wg-stat-label { font-size: 10px; color: #9A9590; margin-top: 2px; line-height: 1.3; }
-
 .wg-divider { height: 1px; background: #E4E0D8; margin: 18px 0 14px; }
-
 .wg-chart-label { font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #9A9590; margin-bottom: 12px; }
 .wg-chart { display: flex; flex-direction: column; gap: 9px; }
 .wg-bar-row { display: flex; align-items: center; gap: 8px; }
@@ -46,7 +40,6 @@ body {
 .wg-bar-track { flex: 1; height: 7px; background: #E4E0D8; border-radius: 4px; overflow: hidden; }
 .wg-bar-fill { height: 100%; width: 0; background: #3DAA7C; border-radius: 4px; transition: width 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
 .wg-bar-amt { font-size: 11px; font-weight: 500; color: #1C1C1C; text-align: right; min-width: 62px; flex-shrink: 0; }
-
 .wg-footer { margin-top: 18px; font-size: 10px; color: #C4BFB6; border-top: 1px solid #E4E0D8; padding-top: 10px; }
 </style>
 </head>
@@ -109,7 +102,7 @@ function renderWidget(lifetime, giftAid, lastAmt, lastDate, breakdown, updated) 
         h += '<div class="wg-chart-label">Giving by year</div>';
         h += '<div class="wg-chart">';
         years.forEach(function(y) {
-            var pct = maxAmt > 0 ? ((y.amount / maxAmt) * 100).toFixed(1) : 0;
+            var pct = ((y.amount / maxAmt) * 100).toFixed(1);
             h += '<div class="wg-bar-row">';
             h += '<div class="wg-bar-year">' + y.year + '</div>';
             h += '<div class="wg-bar-track"><div class="wg-bar-fill" data-w="' + pct + '"></div></div>';
@@ -132,27 +125,46 @@ function renderWidget(lifetime, giftAid, lastAmt, lastDate, breakdown, updated) 
     });
 }
 
-// Read values from URL parameters
-window.addEventListener("DOMContentLoaded", function() {
-    var params   = new URLSearchParams(window.location.search);
-    var lifetime = params.get("lifetime") || "";
-    var giftAid  = params.get("giftaid")  || "";
-    var lastAmt  = params.get("lastamt")  || "";
-    var lastDate = params.get("lastdate") || "";
-    var breakdown= params.get("breakdown")|| "";
-    var updated  = params.get("updated")  || "";
+ZOHO.embeddedApp.on("PageLoad", async function(data) {
+    var entityId = data.EntityId;
 
-    hide("loading");
+    try {
+        var resp = await ZOHO.CRM.API.getRecord({
+            Entity: "Contacts",
+            RecordID: entityId
+        });
 
-    // If Zoho didn't replace the merge tags, params will contain
-    // the literal placeholder text — treat as no data
-    if (!lifetime || lifetime.indexOf("${") > -1 || (parseFloat(lifetime) === 0 && !breakdown)) {
-        show("no-data");
-        return;
+        hide("loading");
+
+        if (!resp.data || resp.data.length === 0) {
+            show("no-data");
+            return;
+        }
+
+        var rec       = resp.data[0];
+        var lifetime  = parseFloat(rec.Lifetime_Giving_Total)   || 0;
+        var giftAid   = parseFloat(rec.Gift_Aid_Lifetime_Total)  || 0;
+        var lastAmt   = parseFloat(rec.Last_Donation_Amount)     || 0;
+        var lastDate  = rec.Last_Donation_Date                   || null;
+        var breakdown = rec.Giving_Year_Breakdown                || "";
+        var updated   = rec.Giving_Last_Updated                  || null;
+
+        if (lifetime === 0 && !breakdown) {
+            show("no-data");
+            return;
+        }
+
+        renderWidget(lifetime, giftAid, lastAmt, lastDate, breakdown, updated);
+
+    } catch(err) {
+        hide("loading");
+        document.getElementById("loading").textContent = "Unable to load data.";
+        show("loading");
+        console.error("Widget error:", err);
     }
-
-    renderWidget(lifetime, giftAid, lastAmt, lastDate, breakdown, updated);
 });
+
+ZOHO.embeddedApp.init();
 </script>
 </body>
 </html>
