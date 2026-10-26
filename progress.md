@@ -5,6 +5,7 @@ Newest first. One entry per meaningful change; commit labels follow `type(scope)
 Per-session status and next steps live in [sessions.md](sessions.md); the reasoning behind changes is in [decisions.md](decisions.md).
 
 ## 2026-10-26
+- `feat(deluge)`: return message now includes YTD, largest and first gift so a run shows at once whether the new code is live.
 - `docs`: added progress.md, decisions.md, sessions.md, CLAUDE.md, docs/zoho-setup-guide.md.
 - `chore(widget)` 008c545: repacked `widgets/lifetime_giving/dist/lifetime_giving.zip` from `app/` (was the 17 Sep build).
 - `feat(widget)` b62c92f: Lifetime Giving widget shows YTD, Gift Aid, Last gift, Largest gift (amount + date) and First gift in a 2x2 grid; `renderWidget` now takes one object. Tiles for largest/first/last hide when their date is empty.

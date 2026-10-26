@@ -95,5 +95,5 @@ updateMap.put("Largest_Donation_Amount",largestAmount.round(2));
 updateMap.put("Largest_Donation_Date",largestDate);
 updateMap.put("First_Donation_Date",firstDate);
 updateResp = zoho.crm.updateRecord("Contacts",contactId,updateMap);
-return "Updated: " + contactId + " | Lifetime: £" + lifetimeTotal.round(2).toString() + " | UpdateResp: " + updateResp.toString();
+return "Updated: " + contactId + " | Lifetime: £" + lifetimeTotal.round(2).toString() + " | YTD: £" + ytdTotal.round(2).toString() + " | Largest: £" + largestAmount.round(2).toString() + " on " + largestDate + " | First: " + firstDate + " | UpdateResp: " + updateResp.toString();
 }
