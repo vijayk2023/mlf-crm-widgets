@@ -42,3 +42,16 @@ Consequences: the message is only as trustworthy as the last calculation; recalc
 ## D11 - The calculation always writes, even with no donations (2026-10-26)
 Context: with no Donation records the function returned early without writing, so stale totals stayed (e.g. a donation moved to another contact) and the contact could never be stamped as checked.
 Decision: remove the early return; with no donations the function writes zero totals, blank dates and stamps `Giving_Last_Updated`. Required by D10.
+
+## D12 - One shared calculation function; buttons and batches are wrappers (2026-10-26)
+Context: the same logic existed in at least `mlf_lifetime_giving_aggregation_all`, `..._all1`, `mlf_nightly_giving_refresh` and `mlf_refresh_batch_1..5`. A repaste to one copy silently failed and an old copy kept running (James Wilson test).
+Decision: a standalone function `mlf_aggregate_contact_giving(id, stampEmpty)` holds all logic; one button function `mlf_calculate_giving_history` serves all three buttons; `mlf_refresh_pages(pages)` holds the batch loop; `mlf_refresh_batch_1..5` are one-line schedule wrappers. Old functions are deleted after the buttons are repointed and verified.
+Consequences: logic changes happen in one file. Depends on a button/schedule function being able to call a standalone function (`standalone.fn(...)`); verified at deploy time. Repo files now carry the same name Zoho shows.
+
+## D13 - `mlf_nightly_giving_refresh` is retired (2026-10-26)
+It was pages 1-108 in one run, i.e. batches 1-5 combined; the batches exist because one run is too long. All schedule functions were switched off by the user before this change; none should be enabled until tested.
+
+## D14 - Bulk refresh skips contacts with no donations (default), button stamps them (2026-10-26)
+Context: stamping every Contact (up to ~21,600, one update each) costs API calls; the old batches also skipped them.
+Decision: `stampEmpty` is false in batches, true in the button. Never-donors then show "No giving data yet - click Calculate" until someone clicks, then "No donation received to date". Trade-off accepted pending user review; flip the `false` in `mlf_refresh_pages.dg` to stamp everyone.
+Consequences: stale totals on a contact whose donations were all removed persist until the button is clicked.

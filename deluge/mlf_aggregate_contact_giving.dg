@@ -1,4 +1,6 @@
-string button.mlf_lifetime_giving_aggregation_all(String id)
+// Single source of truth for the giving summary on a Contact.
+// Called by the button wrapper (stampEmpty = true) and by mlf_refresh_pages (stampEmpty = false).
+string standalone.mlf_aggregate_contact_giving(String id, Boolean stampEmpty)
 {
 contactId = id.trim();
 if(contactId == null || contactId == "")
@@ -7,10 +9,14 @@ if(contactId == null || contactId == "")
 }
 criteria = "(Contact:equals:" + contactId + ")";
 allDonations = zoho.crm.searchRecords("Donation",criteria,1,200);
-// No donations: carry on with empty totals so stale values are cleared and Giving_Last_Updated is stamped
 if(allDonations == null)
 {
     allDonations = List();
+}
+// No donations: the button stamps the contact (clears stale values, sets Giving_Last_Updated); bulk refreshes skip them to save API calls
+if(allDonations.size() == 0 && !stampEmpty)
+{
+    return "Skipped: no donations for " + contactId;
 }
 lifetimeTotal = 0.0;
 giftAidTotal = 0.0;

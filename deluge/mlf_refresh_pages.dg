@@ -1,0 +1,35 @@
+// Walks pages of Contacts (200 per page) and refreshes giving for each. Used by the scheduled batch functions.
+string standalone.mlf_refresh_pages(List pages)
+{
+updatedCount = 0;
+skippedCount = 0;
+for each  page in pages
+{
+    contacts = zoho.crm.getRecords("Contacts",page,200);
+    if(contacts == null || contacts.size() == 0)
+    {
+        break;
+    }
+    for each  contact in contacts
+    {
+        contactId = contact.get("id");
+        if(contactId != null && contactId != "")
+        {
+            result = standalone.mlf_aggregate_contact_giving(contactId.toString(),false);
+            if(result.startsWith("Updated"))
+            {
+                updatedCount = updatedCount + 1;
+            }
+            else
+            {
+                skippedCount = skippedCount + 1;
+            }
+        }
+    }
+    if(contacts.size() < 200)
+    {
+        break;
+    }
+}
+return "Updated: " + updatedCount.toString() + " | Skipped (no donations): " + skippedCount.toString();
+}

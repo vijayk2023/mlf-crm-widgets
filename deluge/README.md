@@ -1,15 +1,27 @@
 # Deluge functions
 
-Source of truth for Zoho CRM functions used by the widgets. Paste the file contents into
-Setup > Developer Hub > Functions; update the file here first, then deploy.
+Source of truth for the Zoho CRM functions behind the giving widget. Edit the file here first, commit, then paste into Zoho
+(Setup > Developer Space > Functions). **The first line must keep the Zoho function's own name** (see "Deploying").
 
-| File | Trigger | Writes to |
-|------|---------|-----------|
-| `mlf_lifetime_giving_aggregation_all.dg` | "Calculate Giving History" button (Contacts) | Giving fields on Contacts, read by `widgets/lifetime_giving` |
-| `mlf_refresh_batch_1.dg` | Scheduled function, contacts pages 1-20 (4,000 contacts). **Baseline of the old logic - not yet updated** | Same Contact giving fields |
+## Structure (one calculation, thin wrappers)
+| File | Type | Role |
+|------|------|------|
+| `mlf_aggregate_contact_giving.dg` | standalone | **All the logic.** Calculates and writes the giving fields for one Contact. `stampEmpty` = true writes even with no donations (button); false skips them (bulk). |
+| `mlf_calculate_giving_history.dg` | button | One-line wrapper used by **all three** "Calculate Giving History" buttons. |
+| `mlf_refresh_pages.dg` | standalone | Loops Contacts pages (200 per page) and calls the shared function. |
+| `mlf_refresh_batch_1.dg` ... `_5.dg` | schedule | One-line wrappers: pages 1-20, 21-40, 41-60, 61-80, 81-108. Keep **off** unless a bulk run is wanted. |
 
-## Deploying: one rule that bites
-Zoho has more than one copy of this function (e.g. `mlf_lifetime_giving_aggregation_all` and `mlf_lifetime_giving_aggregation_all1`), one per button. Each copy's **first line must keep that copy's own name**. When pasting the repo file into a copy, change line 1 to that function's name, otherwise the save may not take and the old code keeps running. To confirm a paste worked, search the saved function for `received > 0`, or run the button on a contact with no donations: the new code returns `Updated: ...`, the old code returns `No donations found`.
+Change the calculation in one file only. Retired copies (do not recreate): `mlf_lifetime_giving_aggregation_all`, `..._all1`, `mlf_nightly_giving_refresh` (see decisions.md D12-D13).
+The pre-refactor batch function is in git history at commit b1e0005.
+
+## Deploying (in this order)
+1. Create `mlf_aggregate_contact_giving` (standalone), test with **Execute** on a known contact.
+2. Create `mlf_refresh_pages` (standalone). Test with pages `{1}` only.
+3. Create `mlf_calculate_giving_history` (button). Repoint the buttons to it; test; then delete old functions.
+4. Update the schedule wrappers, leave them off.
+
+**Naming rule:** when pasting a repo file into a Zoho function, its first code line must carry that function's exact name, or the save may not take and old code keeps running. To confirm a paste worked, search the saved function for `received > 0` (shared function) or run the button on a contact with no donations: new code returns `Updated: ...`; the old copies returned `No donations found`.
+**Calling syntax:** the wrappers call `standalone.mlf_aggregate_contact_giving(...)`. If Zoho's editor rejects it, use the form it suggests (e.g. `thisapp.standalone....`) and update the files.
 
 ## Commit labels
 `<type>(<scope>): <summary>` - types `feat`, `fix`, `chore`, `docs`; scopes `deluge`, `widget`.

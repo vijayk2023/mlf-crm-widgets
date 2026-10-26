@@ -10,6 +10,7 @@ Read this first. "Current state" is kept up to date; each session below it recor
 
 ## Known issues / not done
 - `searchRecords(...,1,200)` reads only the first 200 donations per contact; larger donors get understated totals.
+- Open: who calls what in Zoho (buttons x3, layouts, workflow rules, schedules) still to be audited before deleting old functions.
 - Fixed 2026-10-26 (D11): no-donation contacts are now cleared and stamped.
 - YTD goes stale on 1 Jan until each contact is recalculated; consider a scheduled bulk run.
 - Zoho has several copies of the function (`..._all`, `..._all1`, one per button); an earlier repaste silently failed because line 1 named the wrong function. Consider pointing all buttons at one function.
@@ -19,4 +20,4 @@ Read this first. "Current state" is kept up to date; each session below it recor
 ## Session 2026-10-26 - Giving widget enhancements
 Done: found widget (reader of Contact fields); confirmed GitHub matched local; created 4 Contact fields; imported live Deluge and added YTD/largest/first; redesigned widget grid; repacked dist; wrote these docs and the Zoho setup guide (docs/zoho-setup-guide.md).
 Left: deploy and verify (below), push.
-**Next session:** confirm an uncalculated contact still says "No giving data yet" and James Wilson's widget says "No donation received to date" -> make sure every button's function has the latest code (see deluge/README) or point all three buttons at one function -> bulk-recalculate every Contact with donations (list view mass action) -> spot-check a few, then consider 200-record paging and a scheduled January refresh. Then pick from Known issues (200-record paging first).
+**Next session (refactor deploy - follow deluge/README.md "Deploying"):** create the two standalone functions and the button wrapper in Zoho, test, repoint the 3 buttons, review every place the old functions are referenced (buttons, layouts, workflow rules, schedules), delete old functions, then bulk-run batches 1-5 one at a time. Previously: confirm an uncalculated contact still says "No giving data yet" and James Wilson's widget says "No donation received to date" -> make sure every button's function has the latest code (see deluge/README) or point all three buttons at one function -> bulk-recalculate every Contact with donations (list view mass action) -> spot-check a few, then consider 200-record paging and a scheduled January refresh. Then pick from Known issues (200-record paging first).

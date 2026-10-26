@@ -16,16 +16,17 @@ You need: Zoho CRM **Administrator** access, and the files from this repo.
 Already done in the MicroLoan org (see `progress.md`). To check: **Setup > Customization > Modules and Fields > Contacts > Layouts > Standard**. You should see these fields under "Life Time Value": Lifetime Giving Total, Gift Aid Lifetime Total, Last Donation Amount/Date, Giving Year Breakdown, Giving Last Updated, **Giving YTD Total, Largest Donation Amount/Date, First Donation Date**.
 If a field is missing, drag **New Field** onto the layout with the right type (Currency or Date) and the exact label. The API name must match (e.g. `Giving_YTD_Total`), or the function and widget will not find it.
 
-## 2. Put the function in Zoho (every time the .dg file changes)
-1. **Setup > Developer Space > Functions** (older menus: *Automation > Actions > Functions*).
-2. Open the existing function **mlf_lifetime_giving_aggregation_all**. (First-time setup: **New Function**, category **Button**, name `mlf_lifetime_giving_aggregation_all`, add one argument `id` of type String.)
-3. Replace the whole code with the contents of the `.dg` file from the repo, then **Save**.
-4. Optional test: use **Execute** with a Contact's ID (the long number in the record's URL). The result line should say `Updated: ... | Lifetime: £...`.
+## 2. Put the functions in Zoho (every time a .dg file changes)
+The logic lives in one **standalone** function; buttons and schedules just call it. Files are in `deluge/` (see `deluge/README.md`).
+1. **Setup > Developer Space > Functions**.
+2. Open or create `mlf_aggregate_contact_giving` (category **Standalone**, arguments `id` String and `stampEmpty` Boolean). Paste the file, **Save**. **Line 1 must keep that function's name.**
+3. Open or create `mlf_calculate_giving_history` (category **Button**, argument `id` String) and `mlf_refresh_pages` (Standalone, argument `pages` List). Paste, Save.
+4. Test: **Execute** the shared function with a Contact ID (the long number in the record's URL) and `stampEmpty` true. The result should say `Updated: ... | Lifetime: £...`.
 
 ## 3. Add the "Calculate Giving History" button on Contacts (once)
 1. **Setup > Customization > Modules and Fields > Contacts > Links and Buttons > Create New Button**.
 2. Name: `Calculate Giving History`. Place it in **Details page** (add **List view** too only if you want to run it for selected rows).
-3. Action: **Writing function**, pick `mlf_lifetime_giving_aggregation_all`, and map argument `id` to the Contact's **Contact Id**.
+3. Action: **Function**, pick `mlf_calculate_giving_history`, and map argument `id` to the Contact's **Contact Id**. All three buttons (record page, create/clone, list mass action) use this same function.
 4. Save, then make sure your profiles can see the button (Setup > Users and Control > Profiles > the Contacts permissions).
 5. **Use it:** open a Contact > click **Calculate Giving History**. Refresh the page; the widget shows the new numbers.
 
