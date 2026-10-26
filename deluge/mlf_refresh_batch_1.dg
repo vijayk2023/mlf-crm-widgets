@@ -1,6 +1,6 @@
 void schedule.mlf_refresh_batch_1()
 {
-// Contacts pages 1-20. Keep scheduled batches off until the shared functions are tested.
-summary = standalone.mlf_refresh_pages("1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20");
+// Contacts pages 10-20 (pages 1-9 were already recalculated on 2026-10-26). Run once on a one-off schedule, then leave off.
+summary = standalone.mlf_refresh_pages("10,11,12,13,14,15,16,17,18,19,20");
 info "Batch 1 complete. " + summary;
 }

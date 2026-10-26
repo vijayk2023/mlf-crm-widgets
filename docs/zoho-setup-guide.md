@@ -18,7 +18,7 @@ Everything runs through **one calculation**, `mlf_aggregate_contact_giving`. Eac
 |---|---|---|---|
 | **Contacts record > "Calculate Giving History" button** (Setup > Customization > Modules and Fields > Contacts > Buttons; page *In Record*, details page, Standard layout; Administrator and Fund Raising Team) | Staff click it to recalculate one contact | `mlf_calculate_giving_history` (category **Button**) | `deluge/mlf_calculate_giving_history.dg` |
 | **Setup > Automation > Workflow Rules > "Auto-Update Giving Summary"** (module Donation, run on create or edit, all donations; action *Function*) | Recalculates the linked contact every time a donation is added or changed | `mlf_donation_trigger_aggregation` (category **Automation**) | `deluge/mlf_donation_trigger_aggregation.dg` |
-| *(none today)* **Setup > Automation > Schedules** | Bulk refresh of all contacts. No schedules exist; recreate `mlf_refresh_batch_1..5` only when a bulk run is wanted, run once, then switch off | `mlf_refresh_batch_N` (Schedule) -> `mlf_refresh_pages` (**Standalone**) | `deluge/mlf_refresh_batch_*.dg`, `deluge/mlf_refresh_pages.dg` |
+| **Setup > Automation > Schedules** (five one-off schedules, to be created by hand; none exist yet) | Bulk refresh of all contacts. Run once, then switch off or delete | `mlf_refresh_batch_1..5` (category **Schedule**) -> `mlf_refresh_pages` (**Standalone**) | `deluge/mlf_refresh_batch_*.dg`, `deluge/mlf_refresh_pages.dg` |
 | *(called by all of the above)* | The calculation itself | `mlf_aggregate_contact_giving` (category **Standalone**) | `deluge/mlf_aggregate_contact_giving.dg` |
 | **Contacts record > left related list "ZohoMLF Lifetime Giving"** (Contacts Standard layout) | The widget. It only **reads** the giving fields; it calls no function | none (reads Contact fields) | `widgets/lifetime_giving/` |
 | **Contacts layout > section "Life Time Value"** (Standard layout) | The 10 giving fields the calculation writes and the widget reads | none | n/a |
@@ -29,7 +29,7 @@ Donation created/edited -----> (workflow) mlf_donation_trigger_aggregation --+--
 Bulk run (optional) ---------> mlf_refresh_batch_N -> mlf_refresh_pages -----+
 ```
 
-**To check what uses a function:** Setup > Developer Space > Functions > click the function > **View Associations**. A function with no *Associated* tag is not used by anything. Total functions expected: 5 (`mlf_aggregate_contact_giving`, `mlf_calculate_giving_history`, `mlf_donation_trigger_aggregation`, `mlf_refresh_pages`, plus the batch wrappers only if recreated).
+**To check what uses a function:** Setup > Developer Space > Functions > click the function > **View Associations**. A function with no *Associated* tag is not used by anything. Functions expected today: 9 (`mlf_aggregate_contact_giving`, `mlf_calculate_giving_history`, `mlf_donation_trigger_aggregation`, `mlf_refresh_pages`, and `mlf_refresh_batch_1` to `_5`). After the bulk run the five batch functions can be deleted (once their schedules are deleted).
 **Before deleting a function,** remove or repoint whatever the Associations list shows, and see `docs/audit-2026-10-26.md` for the history.
 
 ---
@@ -63,6 +63,33 @@ The logic lives in one **standalone** function; buttons and schedules just call 
 3. Type: pick the placement your team uses (a Web Tab or a button). **Confirm which was used originally; this is not recorded in the repo.**
 4. Open it, choose a donation date range (This Week, Last 7 Days, Last Week or Custom) and click **Export Clean XLSX**. It downloads an Excel file with the Donations and their split transactions.
 
+## 6. Run the bulk refresh (five one-off schedules)
+Use this when many contacts need the giving summary recalculated (first time, or each January so YTD resets). Each batch handles a block of Contacts pages (200 contacts per page). Batches skip contacts with no donations.
+
+| Batch function | Contacts pages | Approx. contacts | Approx. run time |
+|---|---|---|---|
+| `mlf_refresh_batch_1` | 10-20 | 2,200 | 8-10 min |
+| `mlf_refresh_batch_2` | 21-40 | 4,000 | 15-17 min |
+| `mlf_refresh_batch_3` | 41-60 | 4,000 | 15-17 min |
+| `mlf_refresh_batch_4` | 61-80 | 4,000 | 15-17 min |
+| `mlf_refresh_batch_5` | 81-108 | 5,600 | 20-25 min |
+
+(Pages 1-9 were already done on 2026-10-26. For a later full refresh, change batch 1 back to start at page 1 in `deluge/mlf_refresh_batch_1.dg` and the Zoho function.)
+
+**For each batch** (Setup > Automation > Schedules > **Create New Schedule**; exact labels may differ slightly):
+1. Name it after the batch, e.g. `Giving refresh batch 1`.
+2. Frequency **Once**, with a start date and time. Start batch 1 now-ish and each later batch **at least 30 minutes after the previous one**, so runs never overlap.
+3. Action: **Function**, choose `mlf_refresh_batch_N` (category Schedule).
+4. Save and make sure the schedule shows as enabled.
+
+**After each run:**
+- Schedules page: check *Last Run* and the **Failures** tab.
+- Setup > Developer Space > Functions > the batch function > **Logs**: the last line reads `Batch N complete. Updated: X | Skipped (no donations): Y`.
+- Open two or three contacts from that page range and check the widget (see the test contacts in `sessions.md` for how to verify).
+
+**When finished:** switch the five schedules off or delete them, then delete the batch functions if you do not want them. Rerunning a batch is safe (it just recalculates the same contacts).
+
+---
 ## Troubleshooting
 | Symptom | Likely cause / fix |
 |---|---|
@@ -70,7 +97,7 @@ The logic lives in one **standalone** function; buttons and schedules just call 
 | Widget says "No donation received to date" | The Contact was calculated and has no gift above £0. Only trust it after the function is current (it is stamped with the check date). |
 | New tiles missing or £0.00 | Function not updated in step 2, or the Contact has not been recalculated since. |
 | "Page Not Found" opening a widget | Wrong index page path, or the zip has an extra top-level folder. The zip must contain `app/widget.html` at its top. |
-| Year to date looks stale in January | Values only change when the button is clicked. Recalculate. |
+| Year to date looks stale in January | Values change only when a contact is recalculated (button, a donation edit, or a bulk run, section 6). Run the bulk refresh in early January. |
 | Function error mentioning a field | A field's API name differs from the code; check step 1. |
 
 ## Related docs
