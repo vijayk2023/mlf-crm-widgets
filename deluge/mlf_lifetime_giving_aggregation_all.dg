@@ -7,9 +7,10 @@ if(contactId == null || contactId == "")
 }
 criteria = "(Contact:equals:" + contactId + ")";
 allDonations = zoho.crm.searchRecords("Donation",criteria,1,200);
-if(allDonations == null || allDonations.size() == 0)
+// No donations: carry on with empty totals so stale values are cleared and Giving_Last_Updated is stamped
+if(allDonations == null)
 {
-    return "No donations found for contact " + contactId;
+    allDonations = List();
 }
 lifetimeTotal = 0.0;
 giftAidTotal = 0.0;
@@ -39,30 +40,38 @@ for each  don in allDonations
     if(donDate != null && donDate != "")
     {
         yr = donDate.toString().subString(0,4);
-        prev = yearMap.get(yr);
-        if(prev == null)
+        // Totals are net (refunds/reversals are negative). Zero-amount records add nothing, so years with only those are left out of the breakdown
+        if(received != 0)
         {
-            prev = 0.0;
-        }
-        yearMap.put(yr,prev + received);
-        if(lastDate == null || donDate.toDate() > lastDate.toDate())
-        {
-            lastDate = donDate;
-            lastAmount = received;
+            prev = yearMap.get(yr);
+            if(prev == null)
+            {
+                prev = 0.0;
+            }
+            yearMap.put(yr,prev + received);
         }
         if(yr == currentYear)
         {
             ytdTotal = ytdTotal + received;
         }
-        if(firstDate == null || donDate.toDate() < firstDate.toDate())
+        // First, last and largest only consider real gifts (amount above zero)
+        if(received > 0)
         {
-            firstDate = donDate;
-        }
-        // Largest gift: higher amount wins; on a tie the more recent gift wins
-        if(largestDate == null || received > largestAmount || (received == largestAmount && donDate.toDate() > largestDate.toDate()))
-        {
-            largestAmount = received;
-            largestDate = donDate;
+            if(lastDate == null || donDate.toDate() > lastDate.toDate())
+            {
+                lastDate = donDate;
+                lastAmount = received;
+            }
+            if(firstDate == null || donDate.toDate() < firstDate.toDate())
+            {
+                firstDate = donDate;
+            }
+            // Largest gift: higher amount wins; on a tie the more recent gift wins
+            if(largestDate == null || received > largestAmount || (received == largestAmount && donDate.toDate() > largestDate.toDate()))
+            {
+                largestAmount = received;
+                largestDate = donDate;
+            }
         }
     }
     lifetimeTotal = lifetimeTotal + received;
