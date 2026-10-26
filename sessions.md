@@ -3,7 +3,7 @@
 Read this first. "Current state" is kept up to date; each session below it records what was done and what to do next. At the end of every session, update Current state and add a "Next session" line.
 
 ## Current state (as of 2026-10-26)
-- Repo: local commits ready; **not pushed yet** (push was blocked, awaiting user go-ahead). Untracked: `widgets/income_stream/` (diagnostic and export zips) - not part of this repo yet.
+- Repo: pushed to `origin/main` on 2026-10-26 (in sync, head ffe370e). Untracked: `widgets/income_stream/` (diagnostic and export zips) - not part of this repo yet.
 - Widget code and `dist/lifetime_giving.zip`: uploaded to Zoho; display verified in the browser on a populated contact. Calculation verified on a multi-gift contact (ties, multiple years).
 - Deluge `deluge/mlf_lifetime_giving_aggregation_all.dg`: user pasted the previous version into every function behind the Calculate Giving History buttons. The D9-D11 version (ignore £0/negative for first/last/largest, always write) is **not yet pasted into Zoho**; repaste it and the widget zip.
 - CRM: 4 new Contact fields exist and are on the layout (Life Time Value). Two test contacts recalculated (one only after the fix). Contacts has 3 buttons: Calculate Giving History (Create/Clone, no layout - likely leftover), Calculate Giving History (Details, Standard), Calculate Giving History All (list mass action).
