@@ -63,3 +63,9 @@ Consequences: giving fields stay current (including YTD, largest, first) without
 
 ## D16 - Zoho function syntax rules learned at deploy (2026-10-26)
 Found when deploying (editor validation errors): the signature must be on **line 1** (header comments go inside the body); argument types are only `string,int,date,float,bool,map` (so `bool` not `Boolean`, and a list is passed as a comma-separated `String` and split with `.toList(",")`); `standalone.mlf_aggregate_contact_giving(...)` is the working call syntax from button and automation functions. Repo files were corrected to match. The earlier "paste didn't stick" problem was a naming/format issue of this kind.
+
+## D17 - Cleanup executed: one button, one workflow trigger, no standing schedules (2026-10-26)
+Context: after D12-D16 the old copies were still in Zoho (3 Contacts buttons, 6 schedules, 3 old button functions, the nightly function).
+Decision, carried out by the user and re-audited by Claude (read-only): Contacts has a single button "Calculate Giving History" (In Record, details page) calling `mlf_calculate_giving_history`; the three old buttons, the nightly and batch schedules and the old functions were deleted; the workflow rule "Auto-Update Giving Summary" stays as the freshness mechanism for new/edited donations; no schedule runs by default. Bulk refresh is run on demand by recreating the batch schedule functions from `deluge/`.
+Consequences: no list-view mass-action button (not recreated); existing contacts only gain the new fields when recalculated (button, donation edit, or an on-demand bulk run); YTD needs a yearly bulk run. Function map and where each is used: docs/zoho-setup-guide.md ("Where everything is used").
+Claude never deletes Zoho items; deletions are done by the user.

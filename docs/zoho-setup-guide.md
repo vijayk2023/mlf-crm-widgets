@@ -7,9 +7,30 @@ You need: Zoho CRM **Administrator** access, and the files from this repo.
 
 | What | Where it lives in this repo |
 |---|---|
-| Calculate Giving History function | `deluge/mlf_lifetime_giving_aggregation_all.dg` |
+| Giving calculation and its wrappers (5 functions) | `deluge/` folder, see `deluge/README.md` |
 | Lifetime Giving widget (zip to upload) | `widgets/lifetime_giving/dist/lifetime_giving.zip` |
 | Income Report Export widget (zip to upload) | `widgets/income_stream/mlf-income-export-widget.zip` |
+
+## Where everything is used in Zoho (the map)
+Everything runs through **one calculation**, `mlf_aggregate_contact_giving`. Each place in Zoho that triggers it has its own small function that just calls it.
+
+| Where in Zoho CRM | What it is | Function it calls | Repo file |
+|---|---|---|---|
+| **Contacts record > "Calculate Giving History" button** (Setup > Customization > Modules and Fields > Contacts > Buttons; page *In Record*, details page, Standard layout; Administrator and Fund Raising Team) | Staff click it to recalculate one contact | `mlf_calculate_giving_history` (category **Button**) | `deluge/mlf_calculate_giving_history.dg` |
+| **Setup > Automation > Workflow Rules > "Auto-Update Giving Summary"** (module Donation, run on create or edit, all donations; action *Function*) | Recalculates the linked contact every time a donation is added or changed | `mlf_donation_trigger_aggregation` (category **Automation**) | `deluge/mlf_donation_trigger_aggregation.dg` |
+| *(none today)* **Setup > Automation > Schedules** | Bulk refresh of all contacts. No schedules exist; recreate `mlf_refresh_batch_1..5` only when a bulk run is wanted, run once, then switch off | `mlf_refresh_batch_N` (Schedule) -> `mlf_refresh_pages` (**Standalone**) | `deluge/mlf_refresh_batch_*.dg`, `deluge/mlf_refresh_pages.dg` |
+| *(called by all of the above)* | The calculation itself | `mlf_aggregate_contact_giving` (category **Standalone**) | `deluge/mlf_aggregate_contact_giving.dg` |
+| **Contacts record > left related list "ZohoMLF Lifetime Giving"** (Contacts Standard layout) | The widget. It only **reads** the giving fields; it calls no function | none (reads Contact fields) | `widgets/lifetime_giving/` |
+| **Contacts layout > section "Life Time Value"** (Standard layout) | The 10 giving fields the calculation writes and the widget reads | none | n/a |
+
+```
+Button click ----------------> mlf_calculate_giving_history ----+
+Donation created/edited -----> (workflow) mlf_donation_trigger_aggregation --+--> mlf_aggregate_contact_giving --> writes Contact fields --> widget shows them
+Bulk run (optional) ---------> mlf_refresh_batch_N -> mlf_refresh_pages -----+
+```
+
+**To check what uses a function:** Setup > Developer Space > Functions > click the function > **View Associations**. A function with no *Associated* tag is not used by anything. Total functions expected: 5 (`mlf_aggregate_contact_giving`, `mlf_calculate_giving_history`, `mlf_donation_trigger_aggregation`, `mlf_refresh_pages`, plus the batch wrappers only if recreated).
+**Before deleting a function,** remove or repoint whatever the Associations list shows, and see `docs/audit-2026-10-26.md` for the history.
 
 ---
 ## 1. Add the giving fields to Contacts (once)

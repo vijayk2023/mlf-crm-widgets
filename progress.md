@@ -5,6 +5,7 @@ Newest first. One entry per meaningful change; commit labels follow `type(scope)
 Per-session status and next steps live in [sessions.md](sessions.md); the reasoning behind changes is in [decisions.md](decisions.md).
 
 ## 2026-10-26
+- `docs`: setup guide now has a map of which function is used where in Zoho (button, workflow rule, schedules, widget, layout); D17 records the cleanup decision.
 - `crm` (done by the user): created the single button "Calculate Giving History" (In Record, details page) calling `mlf_calculate_giving_history`; tested. `docs`: setup guide updated to the real UI labels.
 - `crm` (done by the user): deleted the three old Contacts buttons, the six schedules and the old batch/nightly/button functions. Re-audit: 5 functions left; old `mlf_lifetime_giving_aggregation` unassociated; no buttons, no schedules; workflow rule intact.
 - `crm` (done by Claude via browser, tested with Execute): created `mlf_aggregate_contact_giving` (standalone), `mlf_calculate_giving_history` (button) and `mlf_refresh_pages` (standalone, syntax-validated only, **not executed**); replaced the code of `mlf_donation_trigger_aggregation` with the wrapper (the live workflow rule now uses the shared calculation; old code is in the function's Revisions). Tests: Jillian Atkins (lifetime £2,300, YTD £30, largest £500 on 2025-12-18, first 2007-12-19) and James Wilson (no donations, stamped). Buttons NOT yet repointed (argument picker would not open in automation). Repo files corrected for Zoho syntax (D16).
