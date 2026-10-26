@@ -5,7 +5,7 @@ Read this first. "Current state" is kept up to date; each session below it recor
 ## Current state (as of 2026-10-26)
 - Repo: pushed to `origin/main` on 2026-10-26 (in sync, head ffe370e). Untracked: `widgets/income_stream/` (diagnostic and export zips) - not part of this repo yet.
 - Widget code and `dist/lifetime_giving.zip`: uploaded to Zoho; display verified in the browser on a populated contact. Calculation verified on a multi-gift contact (ties, multiple years).
-- Deluge `deluge/mlf_lifetime_giving_aggregation_all.dg`: user pasted the previous version into every function behind the Calculate Giving History buttons. The D9-D11 version (ignore £0/negative for first/last/largest, always write) is **not yet pasted into Zoho**; repaste it and the widget zip.
+- Deluge `deluge/mlf_lifetime_giving_aggregation_all.dg` (D9-D11 version) and the new `dist/lifetime_giving.zip` are deployed in Zoho. **Jillian Atkins retest passed** (user-confirmed 2026-10-26). No-donation contact test and bulk recalculation still outstanding.
 - CRM: 4 new Contact fields exist and are on the layout (Life Time Value). Two test contacts recalculated (one only after the fix). Contacts has 3 buttons: Calculate Giving History (Create/Clone, no layout - likely leftover), Calculate Giving History (Details, Standard), Calculate Giving History All (list mass action).
 
 ## Known issues / not done
@@ -18,4 +18,4 @@ Read this first. "Current state" is kept up to date; each session below it recor
 ## Session 2026-10-26 - Giving widget enhancements
 Done: found widget (reader of Contact fields); confirmed GitHub matched local; created 4 Contact fields; imported live Deluge and added YTD/largest/first; redesigned widget grid; repacked dist; wrote these docs and the Zoho setup guide (docs/zoho-setup-guide.md).
 Left: deploy and verify (below), push.
-**Next session:** paste the D9-D11 `.dg` into all button functions and upload the new `dist/lifetime_giving.zip` -> re-test Jillian Atkins (first gift 2007-12-19, YTD £30, largest £500 18 Dec 2025; her 2012 £0 year should vanish from the chart) and a contact with no donations (should read "No donation received to date") -> bulk-recalculate every Contact with donations -> consider 200-record paging and a scheduled January refresh. Then pick from Known issues (200-record paging first).
+**Next session:** test a contact with no donations (should read "No donation received to date", and an uncalculated one should still say "No giving data yet") -> bulk-recalculate every Contact with donations (list view mass action) -> spot-check a few, then consider 200-record paging and a scheduled January refresh. Then pick from Known issues (200-record paging first).
