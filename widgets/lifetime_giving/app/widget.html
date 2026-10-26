@@ -26,9 +26,9 @@ body {
 .wg-header { font-size: 10px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #1B5E4F; margin-bottom: 14px; }
 .wg-headline { font-size: 30px; font-weight: 700; color: #1B5E4F; letter-spacing: -0.025em; line-height: 1; }
 .wg-headline-sub { font-size: 11px; color: #9A9590; margin-top: 3px; margin-bottom: 18px; }
-.wg-stats { display: flex; gap: 0; border-top: 1px solid #E4E0D8; padding-top: 14px; margin-bottom: 4px; }
-.wg-stat { flex: 1; padding-right: 12px; }
-.wg-stat + .wg-stat { padding-right: 0; padding-left: 12px; border-left: 1px solid #E4E0D8; }
+.wg-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 0; border-top: 1px solid #E4E0D8; padding-top: 14px; margin-bottom: 4px; }
+.wg-stat { padding-right: 12px; }
+.wg-stat:nth-child(even) { padding-right: 0; padding-left: 12px; border-left: 1px solid #E4E0D8; }
 .wg-stat-val { font-size: 16px; font-weight: 600; color: #1C1C1C; letter-spacing: -0.01em; }
 .wg-amber { color: #B8720A; }
 .wg-stat-label { font-size: 10px; color: #9A9590; margin-top: 2px; line-height: 1.3; }
@@ -81,7 +81,8 @@ function parseBreakdown(str) {
     }).filter(Boolean);
 }
 
-function renderWidget(lifetime, giftAid, lastAmt, lastDate, breakdown, updated) {
+function renderWidget(d) {
+    var lifetime = d.lifetime, breakdown = d.breakdown, updated = d.updated;
     var years  = parseBreakdown(breakdown);
     var maxAmt = years.length > 0 ? Math.max.apply(null, years.map(function(y) { return y.amount; })) : 1;
     var h = "";
@@ -91,9 +92,16 @@ function renderWidget(lifetime, giftAid, lastAmt, lastDate, breakdown, updated) 
     h += '<div class="wg-headline-sub">total received</div>';
 
     h += '<div class="wg-stats">';
-    h += '<div class="wg-stat"><div class="wg-stat-val wg-amber">' + fmt(giftAid) + '</div><div class="wg-stat-label">Gift Aid received</div></div>';
-    if (lastDate) {
-        h += '<div class="wg-stat"><div class="wg-stat-val">' + fmt(lastAmt) + '</div><div class="wg-stat-label">Last gift &middot; ' + fmtDate(lastDate) + '</div></div>';
+    h += '<div class="wg-stat"><div class="wg-stat-val">' + fmt(d.ytd) + '</div><div class="wg-stat-label">Year to date</div></div>';
+    h += '<div class="wg-stat"><div class="wg-stat-val wg-amber">' + fmt(d.giftAid) + '</div><div class="wg-stat-label">Gift Aid received</div></div>';
+    if (d.lastDate) {
+        h += '<div class="wg-stat"><div class="wg-stat-val">' + fmt(d.lastAmt) + '</div><div class="wg-stat-label">Last gift &middot; ' + fmtDate(d.lastDate) + '</div></div>';
+    }
+    if (d.largestDate) {
+        h += '<div class="wg-stat"><div class="wg-stat-val">' + fmt(d.largestAmt) + '</div><div class="wg-stat-label">Largest gift &middot; ' + fmtDate(d.largestDate) + '</div></div>';
+    }
+    if (d.firstDate) {
+        h += '<div class="wg-stat"><div class="wg-stat-val">' + fmtDate(d.firstDate) + '</div><div class="wg-stat-label">First gift</div></div>';
     }
     h += '</div>';
 
@@ -148,13 +156,22 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
         var lastDate  = rec.Last_Donation_Date                   || null;
         var breakdown = rec.Giving_Year_Breakdown                || "";
         var updated   = rec.Giving_Last_Updated                  || null;
+        var ytd         = parseFloat(rec.Giving_YTD_Total)         || 0;
+        var largestAmt  = parseFloat(rec.Largest_Donation_Amount)  || 0;
+        var largestDate = rec.Largest_Donation_Date                || null;
+        var firstDate   = rec.First_Donation_Date                  || null;
 
         if (lifetime === 0 && !breakdown) {
             show("no-data");
             return;
         }
 
-        renderWidget(lifetime, giftAid, lastAmt, lastDate, breakdown, updated);
+        renderWidget({
+            lifetime: lifetime, giftAid: giftAid, ytd: ytd,
+            lastAmt: lastAmt, lastDate: lastDate,
+            largestAmt: largestAmt, largestDate: largestDate,
+            firstDate: firstDate, breakdown: breakdown, updated: updated
+        });
 
     } catch(err) {
         hide("loading");
