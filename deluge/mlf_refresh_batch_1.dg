@@ -1,0 +1,92 @@
+void schedule.mlf_refresh_batch_1()
+{
+processedCount = 0;
+pages = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20};
+for each  page in pages
+{
+    contacts = zoho.crm.getRecords("Contacts",page,200);
+    if(contacts == null || contacts.size() == 0)
+    {
+        break;
+    }
+    for each  contact in contacts
+    {
+        contactId = contact.get("id");
+        if(contactId != null && contactId != "")
+        {
+            criteria = "(Contact:equals:" + contactId + ")";
+            allDonations = zoho.crm.searchRecords("Donation",criteria,1,200);
+            if(allDonations != null && allDonations.size() > 0)
+            {
+                lifetimeTotal = 0.0;
+                giftAidTotal = 0.0;
+                lastDate = null;
+                lastAmount = 0.0;
+                yearMap = Map();
+                for each  don in allDonations
+                {
+                    received = don.get("Received_Amount");
+                    if(received == null || received == "")
+                    {
+                        received = "0";
+                    }
+                    received = received.toDecimal();
+                    ga = don.get("Gift_Aid_Amount");
+                    if(ga == null || ga == "")
+                    {
+                        ga = "0";
+                    }
+                    ga = ga.toDecimal();
+                    donDate = don.get("Donation_Date");
+                    if(donDate != null && donDate != "")
+                    {
+                        yr = donDate.toString().subString(0,4);
+                        prev = yearMap.get(yr);
+                        if(prev == null)
+                        {
+                            prev = 0.0;
+                        }
+                        yearMap.put(yr,prev + received);
+                        if(lastDate == null || donDate.toDate() > lastDate.toDate())
+                        {
+                            lastDate = donDate;
+                            lastAmount = received;
+                        }
+                    }
+                    lifetimeTotal = lifetimeTotal + received;
+                    giftAidTotal = giftAidTotal + ga;
+                }
+                sortedYears = yearMap.keys().sort();
+                yearBreakdown = "";
+                for each  yr in sortedYears
+                {
+                    amt = yearMap.get(yr).round(2);
+                    if(yearBreakdown == "")
+                    {
+                        yearBreakdown = yr + ": £" + amt.toString();
+                    }
+                    else
+                    {
+                        yearBreakdown = yearBreakdown + " | " + yr + ": £" + amt.toString();
+                    }
+                }
+                today = zoho.currentdate.toString("yyyy-MM-dd");
+                updateMap = Map();
+                updateMap.put("Lifetime_Giving_Total",lifetimeTotal.round(2));
+                updateMap.put("Gift_Aid_Lifetime_Total",giftAidTotal.round(2));
+                updateMap.put("Last_Donation_Amount",lastAmount.round(2));
+                updateMap.put("Last_Donation_Date",lastDate);
+                updateMap.put("Giving_Year_Breakdown",yearBreakdown);
+                updateMap.put("Giving_Last_Updated",today);
+                zoho.crm.updateRecord("Contacts",contactId,updateMap);
+                processedCount = processedCount + 1;
+            }
+        }
+    }
+    if(contacts.size() < 200)
+    {
+        break;
+    }
+}
+info "Batch 1 complete. Contacts processed: " + processedCount.toString();
+}
