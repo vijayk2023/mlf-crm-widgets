@@ -5,6 +5,7 @@ Newest first. One entry per meaningful change; commit labels follow `type(scope)
 Per-session status and next steps live in [sessions.md](sessions.md); the reasoning behind changes is in [decisions.md](decisions.md).
 
 ## 2026-10-26
+- `crm` BULK RUN IN PROGRESS (Claude, via Functions > MLF Refresh Pages > Execute, 200 contacts per page, `stampEmpty` false so never-donors are skipped): **Contacts pages 1-9 done** (1,800 contacts: 1,521 updated, 279 skipped). p1: 69 upd/131 skip, 32s; p2-4: 525/75, 124s; p5-9: 927/73, 216s. About 0.22 s per donor contact. **Remaining: pages 10-108** (~19,800 contacts, ~75 min). Safe to rerun any page (idempotent). Function credits page showed no drawdown (25,460 of 25,500 unused).
 - `docs`: setup guide now has a map of which function is used where in Zoho (button, workflow rule, schedules, widget, layout); D17 records the cleanup decision.
 - `crm` (done by the user): created the single button "Calculate Giving History" (In Record, details page) calling `mlf_calculate_giving_history`; tested. `docs`: setup guide updated to the real UI labels.
 - `crm` (done by the user): deleted the three old Contacts buttons, the six schedules and the old batch/nightly/button functions. Re-audit: 5 functions left; old `mlf_lifetime_giving_aggregation` unassociated; no buttons, no schedules; workflow rule intact.
