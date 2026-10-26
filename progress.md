@@ -5,6 +5,7 @@ Newest first. One entry per meaningful change; commit labels follow `type(scope)
 Per-session status and next steps live in [sessions.md](sessions.md); the reasoning behind changes is in [decisions.md](decisions.md).
 
 ## 2026-10-26
+- `crm`: replaced the function behind the Contacts button **Calculate Giving History** (Record - Details, Standard) with the repo version; previous code not kept. Verified on Gillian Eatwell: YTD, largest and first-gift fields populated correctly (single £50 gift, 2026-02-23).
 - `feat(deluge)`: return message now includes YTD, largest and first gift so a run shows at once whether the new code is live.
 - `docs`: added progress.md, decisions.md, sessions.md, CLAUDE.md, docs/zoho-setup-guide.md.
 - `chore(widget)` 008c545: repacked `widgets/lifetime_giving/dist/lifetime_giving.zip` from `app/` (was the 17 Sep build).
