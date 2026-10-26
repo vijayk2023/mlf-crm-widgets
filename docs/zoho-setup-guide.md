@@ -24,9 +24,9 @@ The logic lives in one **standalone** function; buttons and schedules just call 
 4. Test: **Execute** the shared function with a Contact ID (the long number in the record's URL) and `stampEmpty` true. The result should say `Updated: ... | Lifetime: £...`.
 
 ## 3. Add the "Calculate Giving History" button on Contacts (once)
-1. **Setup > Customization > Modules and Fields > Contacts > Links and Buttons > Create New Button**.
-2. Name: `Calculate Giving History`. Place it in **Details page** (add **List view** too only if you want to run it for selected rows).
-3. Action: **Function**, pick `mlf_calculate_giving_history`, and map argument `id` to the Contact's **Contact Id**. All three buttons (record page, create/clone, list mass action) use this same function.
+1. **Setup > Customization > Modules and Fields > Contacts > Buttons > Create New Button**.
+2. Name: `Calculate Giving History`. Define action: **Function**. Select Page: **In Record**, position **Details page**, layout **Standard**. (Only add an **In List** button if you want to run it for selected rows; the old Create/Clone and list buttons were removed on 2026-10-26.)
+3. Configured Function: **Choose > Functions > MLF Calculate Giving History > Configure**, map argument `id` to **Contacts - Contact Id**, and give access to Administrator and Fund Raising Team. Any button you add later uses this same function.
 4. Save, then make sure your profiles can see the button (Setup > Users and Control > Profiles > the Contacts permissions).
 5. **Use it:** open a Contact > click **Calculate Giving History**. Refresh the page; the widget shows the new numbers.
 
