@@ -48,8 +48,8 @@ body {
     <div id="loading">Loading giving data…</div>
     <div id="no-data">
         <div class="empty-icon">◎</div>
-        <p class="empty-title">No giving data yet</p>
-        <p class="empty-hint">Click <strong>Calculate Giving History</strong> on this Contact to generate the summary.</p>
+        <p class="empty-title" id="empty-title">No giving data yet</p>
+        <p class="empty-hint" id="empty-hint">Click <strong>Calculate Giving History</strong> on this Contact to generate the summary.</p>
     </div>
     <div id="widget"></div>
 </div>
@@ -57,6 +57,15 @@ body {
 <script>
 function show(id) { document.getElementById(id).style.display = "block"; }
 function hide(id) { document.getElementById(id).style.display = "none"; }
+
+function showEmpty(calculated, updated) {
+    // "No donation" is only claimed when the summary has actually been calculated; otherwise the contact may simply not have been run yet
+    if (calculated) {
+        document.getElementById("empty-title").textContent = "No donation received to date";
+        document.getElementById("empty-hint").textContent = "Checked " + fmtDate(updated) + ". No gifts are recorded for this Contact.";
+    }
+    show("no-data");
+}
 
 function fmt(n) {
     var num = parseFloat(n);
@@ -145,7 +154,7 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
         hide("loading");
 
         if (!resp.data || resp.data.length === 0) {
-            show("no-data");
+            showEmpty(false);
             return;
         }
 
@@ -161,8 +170,13 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
         var largestDate = rec.Largest_Donation_Date                || null;
         var firstDate   = rec.First_Donation_Date                  || null;
 
-        if (lifetime === 0 && !breakdown) {
-            show("no-data");
+        // Calculated (stamped) with nothing received: no positive gift and a zero or negative net total
+        if (updated && lifetime <= 0 && !firstDate) {
+            showEmpty(true, updated);
+            return;
+        }
+        if (!updated && lifetime === 0 && !breakdown) {
+            showEmpty(false);
             return;
         }
 
