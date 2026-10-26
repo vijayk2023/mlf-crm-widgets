@@ -15,6 +15,11 @@ lifetimeTotal = 0.0;
 giftAidTotal = 0.0;
 lastDate = null;
 lastAmount = 0.0;
+ytdTotal = 0.0;
+largestAmount = 0.0;
+largestDate = null;
+firstDate = null;
+currentYear = zoho.currentdate.toString("yyyy");
 yearMap = Map();
 for each  don in allDonations
 {
@@ -45,6 +50,20 @@ for each  don in allDonations
             lastDate = donDate;
             lastAmount = received;
         }
+        if(yr == currentYear)
+        {
+            ytdTotal = ytdTotal + received;
+        }
+        if(firstDate == null || donDate.toDate() < firstDate.toDate())
+        {
+            firstDate = donDate;
+        }
+        // Largest gift: higher amount wins; on a tie the more recent gift wins
+        if(largestDate == null || received > largestAmount || (received == largestAmount && donDate.toDate() > largestDate.toDate()))
+        {
+            largestAmount = received;
+            largestDate = donDate;
+        }
     }
     lifetimeTotal = lifetimeTotal + received;
     giftAidTotal = giftAidTotal + ga;
@@ -71,7 +90,10 @@ updateMap.put("Last_Donation_Amount",lastAmount.round(2));
 updateMap.put("Last_Donation_Date",lastDate);
 updateMap.put("Giving_Year_Breakdown",yearBreakdown);
 updateMap.put("Giving_Last_Updated",today);
-updateResp = zoho.crm.updateRecord("Contacts",contactId,updateMap);
+updateMap.put("Giving_YTD_Total",ytdTotal.round(2));
+updateMap.put("Largest_Donation_Amount",largestAmount.round(2));
+updateMap.put("Largest_Donation_Date",largestDate);
+updateMap.put("First_Donation_Date",firstDate);
 updateResp = zoho.crm.updateRecord("Contacts",contactId,updateMap);
 return "Updated: " + contactId + " | Lifetime: £" + lifetimeTotal.round(2).toString() + " | UpdateResp: " + updateResp.toString();
 }
