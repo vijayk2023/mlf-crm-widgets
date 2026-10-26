@@ -44,8 +44,8 @@ If a field is missing, drag **New Field** onto the layout with the right type (C
 ## Troubleshooting
 | Symptom | Likely cause / fix |
 |---|---|
-| Widget says "No giving data yet" | Click **Calculate Giving History** on that Contact. |
-| Button says "No donations found" | The Contact has no records in the Donation module linked to it. |
+| Widget says "No giving data yet" | Not calculated yet. Click **Calculate Giving History** on that Contact. |
+| Widget says "No donation received to date" | The Contact was calculated and has no gift above £0. Only trust it after the function is current (it is stamped with the check date). |
 | New tiles missing or £0.00 | Function not updated in step 2, or the Contact has not been recalculated since. |
 | "Page Not Found" opening a widget | Wrong index page path, or the zip has an extra top-level folder. The zip must contain `app/widget.html` at its top. |
 | Year to date looks stale in January | Values only change when the button is clicked. Recalculate. |
