@@ -60,3 +60,6 @@ Consequences: stale totals on a contact whose donations were all removed persist
 Context: the audit (docs/audit-2026-10-26.md) found an active workflow rule "Auto-Update Giving Summary" calling `mlf_donation_trigger_aggregation` on every Donation create/edit, running the old logic.
 Decision: that function becomes a wrapper that looks up the donation's Contact and calls `mlf_aggregate_contact_giving(contactId, true)`. The workflow rule is unchanged.
 Consequences: giving fields stay current (including YTD, largest, first) without manual runs; every donation edit costs the shared function's API calls.
+
+## D16 - Zoho function syntax rules learned at deploy (2026-10-26)
+Found when deploying (editor validation errors): the signature must be on **line 1** (header comments go inside the body); argument types are only `string,int,date,float,bool,map` (so `bool` not `Boolean`, and a list is passed as a comma-separated `String` and split with `.toList(",")`); `standalone.mlf_aggregate_contact_giving(...)` is the working call syntax from button and automation functions. Repo files were corrected to match. The earlier "paste didn't stick" problem was a naming/format issue of this kind.

@@ -10,6 +10,7 @@ Read this first. "Current state" is kept up to date; each session below it recor
 
 ## Known issues / not done
 - `searchRecords(...,1,200)` reads only the first 200 donations per contact; larger donors get understated totals.
+- Deploy status 2026-10-26: shared function, button function, refresh_pages and the donation-trigger wrapper are live in Zoho; the 3 buttons still call the OLD functions.
 - Audit done 2026-10-26 (docs/audit-2026-10-26.md). **The workflow rule "Auto-Update Giving Summary" calls `mlf_donation_trigger_aggregation` (old logic) on every donation edit - rewrite before bulk-refreshing.** External callers (Zapier etc.) not checkable from Zoho; check function Logs.
 - Fixed 2026-10-26 (D11): no-donation contacts are now cleared and stamped.
 - YTD goes stale on 1 Jan until each contact is recalculated; consider a scheduled bulk run.

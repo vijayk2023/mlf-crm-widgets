@@ -1,11 +1,12 @@
-// Walks pages of Contacts (200 per page) and refreshes giving for each. Used by the scheduled batch functions.
-string standalone.mlf_refresh_pages(List pages)
+string standalone.mlf_refresh_pages(String pages)
 {
+// Walks pages of Contacts (200 per page) and refreshes giving for each. Used by the scheduled batch functions.
 updatedCount = 0;
 skippedCount = 0;
-for each  page in pages
+pageList = pages.toList(",");
+for each  page in pageList
 {
-    contacts = zoho.crm.getRecords("Contacts",page,200);
+    contacts = zoho.crm.getRecords("Contacts",page.toLong(),200);
     if(contacts == null || contacts.size() == 0)
     {
         break;

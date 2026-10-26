@@ -22,6 +22,7 @@ The pre-refactor batch function is in git history at commit b1e0005.
 4. Replace the code in `mlf_donation_trigger_aggregation` (the live workflow rule calls it).
 5. Update the schedule wrappers, leave them off.
 
+**Zoho syntax rules (D16):** signature on line 1 (comments go inside the body); argument types only `string,int,date,float,bool,map`; lists passed as comma-separated strings.
 **Naming rule:** when pasting a repo file into a Zoho function, its first code line must carry that function's exact name, or the save may not take and old code keeps running. To confirm a paste worked, search the saved function for `received > 0` (shared function) or run the button on a contact with no donations: new code returns `Updated: ...`; the old copies returned `No donations found`.
 **Calling syntax:** the wrappers call `standalone.mlf_aggregate_contact_giving(...)`. If Zoho's editor rejects it, use the form it suggests (e.g. `thisapp.standalone....`) and update the files.
 

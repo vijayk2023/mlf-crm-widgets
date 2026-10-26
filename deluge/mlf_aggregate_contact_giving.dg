@@ -1,7 +1,7 @@
+string standalone.mlf_aggregate_contact_giving(String id, bool stampEmpty)
+{
 // Single source of truth for the giving summary on a Contact.
 // Called by the button wrapper (stampEmpty = true) and by mlf_refresh_pages (stampEmpty = false).
-string standalone.mlf_aggregate_contact_giving(String id, Boolean stampEmpty)
-{
 contactId = id.trim();
 if(contactId == null || contactId == "")
 {

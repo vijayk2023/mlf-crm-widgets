@@ -1,5 +1,5 @@
-// Behind all three "Calculate Giving History" buttons on Contacts. Argument id = Contacts - Contact Id.
 string button.mlf_calculate_giving_history(String id)
 {
+// Behind all three "Calculate Giving History" buttons on Contacts. Argument id = Contacts - Contact Id.
 return standalone.mlf_aggregate_contact_giving(id,true);
 }

@@ -1,6 +1,6 @@
-// Contacts pages 61-80. Keep scheduled batches off until the shared functions are tested.
 void schedule.mlf_refresh_batch_4()
 {
-summary = standalone.mlf_refresh_pages({61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80});
+// Contacts pages 61-80. Keep scheduled batches off until the shared functions are tested.
+summary = standalone.mlf_refresh_pages("61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80");
 info "Batch 4 complete. " + summary;
 }
