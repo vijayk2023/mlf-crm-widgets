@@ -5,6 +5,7 @@ Newest first. One entry per meaningful change; commit labels follow `type(scope)
 Per-session status and next steps live in [sessions.md](sessions.md); the reasoning behind changes is in [decisions.md](decisions.md).
 
 ## 2026-10-26
+- `crm`: found the Details button called a stale copy `mlf_lifetime_giving_aggregation_all1` (early return, no >£0 filter); replaced with the latest repo code (line 1 renamed). Verified on James Wilson (no donations). `docs`: added the line-1 naming rule to deluge/README.md.
 - `test`: D9-D11 version deployed in Zoho; Jillian Atkins retest passed (user-confirmed).
 - `feat(deluge)` / `feat(widget)`: first/last/largest ignore £0 and negative records, £0-only years dropped from the breakdown; function always writes (clears stale values, stamps Giving_Last_Updated) when a contact has no donations; widget shows "No donation received to date" only for calculated contacts (D9-D11). Repacked `dist`.
 - `test`: verified on Jillian Atkins (178 gifts, 2007-2026): YTD £30, largest £500 on 2025-12-18 (tie with 2022-07-12 resolved to the later), first gift 2007-12-19. User confirmed it worked. Widget display also verified in the browser on Gillian Eatwell.
