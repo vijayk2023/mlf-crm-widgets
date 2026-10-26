@@ -5,6 +5,7 @@ Newest first. One entry per meaningful change; commit labels follow `type(scope)
 Per-session status and next steps live in [sessions.md](sessions.md); the reasoning behind changes is in [decisions.md](decisions.md).
 
 ## 2026-10-26
+- `docs`: read-only audit of all callers of the giving functions (docs/audit-2026-10-26.md). Found the live workflow rule "Auto-Update Giving Summary" -> `mlf_donation_trigger_aggregation` (old logic). Added draft wrapper `deluge/mlf_donation_trigger_aggregation.dg` (D15).
 - `feat(deluge)`: refactor to one shared function (D12-D14): `mlf_aggregate_contact_giving` (renamed from `mlf_lifetime_giving_aggregation_all`), `mlf_calculate_giving_history` (button), `mlf_refresh_pages`, and `mlf_refresh_batch_1..5` as wrappers. Written in repo; **not yet deployed in Zoho**. Old batch/nightly schedules were switched off by the user.
 - `crm`: found the Details button called a stale copy `mlf_lifetime_giving_aggregation_all1` (early return, no >£0 filter); replaced with the latest repo code (line 1 renamed). Verified on James Wilson (no donations). `docs`: added the line-1 naming rule to deluge/README.md.
 - `test`: D9-D11 version deployed in Zoho; Jillian Atkins retest passed (user-confirmed).

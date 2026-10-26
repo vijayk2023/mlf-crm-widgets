@@ -55,3 +55,8 @@ It was pages 1-108 in one run, i.e. batches 1-5 combined; the batches exist beca
 Context: stamping every Contact (up to ~21,600, one update each) costs API calls; the old batches also skipped them.
 Decision: `stampEmpty` is false in batches, true in the button. Never-donors then show "No giving data yet - click Calculate" until someone clicks, then "No donation received to date". Trade-off accepted pending user review; flip the `false` in `mlf_refresh_pages.dg` to stamp everyone.
 Consequences: stale totals on a contact whose donations were all removed persist until the button is clicked.
+
+## D15 - The Donation workflow trigger also goes through the shared function (2026-10-26)
+Context: the audit (docs/audit-2026-10-26.md) found an active workflow rule "Auto-Update Giving Summary" calling `mlf_donation_trigger_aggregation` on every Donation create/edit, running the old logic.
+Decision: that function becomes a wrapper that looks up the donation's Contact and calls `mlf_aggregate_contact_giving(contactId, true)`. The workflow rule is unchanged.
+Consequences: giving fields stay current (including YTD, largest, first) without manual runs; every donation edit costs the shared function's API calls.

@@ -1,0 +1,16 @@
+// Called by the workflow rule "Auto-Update Giving Summary" (Donation, create or edit, all donations).
+// Draft: compare with the code currently in Zoho before replacing it (e.g. does it also refresh a contact a donation was moved away from?).
+string automation.mlf_donation_trigger_aggregation(String donationId)
+{
+don = zoho.crm.getRecordById("Donation",donationId.toLong());
+if(don == null)
+{
+    return "Skipped: donation not found";
+}
+contact = don.get("Contact");
+if(contact == null || contact.get("id") == null)
+{
+    return "Skipped: donation has no contact";
+}
+return standalone.mlf_aggregate_contact_giving(contact.get("id").toString(),true);
+}
