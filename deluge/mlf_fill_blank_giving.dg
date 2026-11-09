@@ -1,0 +1,65 @@
+string standalone.mlf_fill_blank_giving(String startAfterId)
+{
+// One-off / catch-up backfill (D19): every Contact whose Lifetime_Giving_Total is blank is run through the shared calculation
+// with stampEmpty = true. Never-donors get Lifetime £0 (so Zoho Campaigns segments on "= 0" include them); anyone with gifts gets real totals.
+// Up to 4 rounds x 200 Contacts per run (about 800, inside the 5-minute limit). Run with "0" first, then pass the returned lastId.
+// Idempotent: rerun with "0" at any time to catch Contacts created without the "set £0 on create" workflow (e.g. imports with automations off).
+lastId = startAfterId.trim();
+if(lastId == "")
+{
+    lastId = "0";
+}
+updatedCount = 0;
+otherCount = 0;
+otherIds = "";
+more = "yes";
+rounds = "1,2,3,4".toList(",");
+headerMap = Map();
+headerMap.put("Content-Type","application/json");
+for each  r in rounds
+{
+    query = "select id from Contacts where (Lifetime_Giving_Total is null and id > " + lastId + ") order by id asc limit 200";
+    bodyMap = Map();
+    bodyMap.put("select_query",query);
+    resp = invokeurl
+    [
+        url :"https://www.zohoapis.eu/crm/v8/coql"
+        type :POST
+        parameters:bodyMap.toString()
+        headers:headerMap
+        connection:"crm_coql"
+    ];
+    rows = List();
+    respText = resp.toString();
+    if(respText.contains("\"data\""))
+    {
+        rows = resp.get("data");
+    }
+    if(rows.size() == 0)
+    {
+        more = "no";
+        break;
+    }
+    for each  row in rows
+    {
+        cid = row.get("id").toString();
+        result = standalone.mlf_aggregate_contact_giving(cid,true);
+        if(result.startsWith("Updated"))
+        {
+            updatedCount = updatedCount + 1;
+        }
+        else
+        {
+            otherCount = otherCount + 1;
+            otherIds = otherIds + cid + " ";
+        }
+        lastId = cid;
+    }
+    if(rows.size() < 200)
+    {
+        more = "no";
+        break;
+    }
+}
+return "Updated: " + updatedCount.toString() + " | Other: " + otherCount.toString() + " " + otherIds + "| lastId: " + lastId + " | more: " + more;
+}

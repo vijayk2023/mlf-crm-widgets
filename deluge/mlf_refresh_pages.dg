@@ -16,7 +16,8 @@ for each  page in pageList
         contactId = contact.get("id");
         if(contactId != null && contactId != "")
         {
-            result = standalone.mlf_aggregate_contact_giving(contactId.toString(),false);
+            // stampEmpty = true (D19, supersedes D14): never-donors get Lifetime £0 so Zoho Campaigns segments include them
+            result = standalone.mlf_aggregate_contact_giving(contactId.toString(),true);
             if(result.startsWith("Updated"))
             {
                 updatedCount = updatedCount + 1;
