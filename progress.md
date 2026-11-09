@@ -4,6 +4,14 @@ Newest first. One entry per meaningful change; commit labels follow `type(scope)
 (types `feat` `fix` `chore` `docs`; scopes `deluge` `widget` `crm` `docs`).
 Per-session status and next steps live in [sessions.md](sessions.md); the reasoning behind changes is in [decisions.md](decisions.md).
 
+## 2026-11-09
+- `feat(deluge)` ec5a92f, ee33898: `mlf_fill_blank_giving` (standalone backfill) and `mlf_fill_blank_giving_run` (schedule wrapper); `mlf_refresh_pages` now stamps never-donors (`stampEmpty` true). D19.
+- `crm` (Claude, Chrome): read-only counts: 21,491 Contacts, 8,894 blank `Lifetime_Giving_Total` (all also blank `Giving_Last_Updated`), 1,013 at 0; 73 sampled blanks had no Donation records.
+- `crm` test: button "Calculate Giving History" on Titus Gwemende 901783000003919050 (all giving fields blank before) -> Lifetime/YTD/Last amount £0, Giving_Last_Updated 2026-11-09. Left as is (desired result).
+- `crm` (Claude, Chrome): created functions `mlf_fill_blank_giving` (Standalone) and `mlf_fill_blank_giving_run` (Schedule, code verified), and 11 one-off schedules `mlf_fill_blank_giving_01..11` on 10/11/2026 at 01:00, 01:30 ... 06:00 (Europe/London), all enabled. **Not yet run.**
+- `crm` discovery: Schedules page shows `mlf_refresh_batch_1..5` all "Completed" 27/10/2026 (switched off), so the P1 bulk recalculation ran; spot checks (P2) still to do.
+- **Not deployed yet:** `mlf_refresh_pages` change (stampEmpty true) is in the repo only.
+
 ## 2026-10-26
 - `crm` (Claude): created Schedule-category functions `mlf_refresh_batch_1..5` in Zoho (syntax-checked, saved; **not run, not scheduled**). Batch 1 now starts at page 10 (pages 1-9 already done). Repo files synced. User will create the one-off schedules (guide section 6). D18 recorded.
 - `docs`: sessions.md rewritten with a "START HERE" handoff for the next session (model, tools, rules, test records, Zoho syntax quirks); CLAUDE.md and project memory point to it.

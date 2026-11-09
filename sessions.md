@@ -31,6 +31,12 @@
 | Gillian Eatwell | 901783000002352993 | One £50 gift 2026-02-23: all of YTD, largest, first, last match it |
 
 ---
+## Current state (2026-11-09) - READ THIS FIRST, then the older block below
+- **Lifetime Giving £0 backfill (D19) is scheduled, not yet run.** 11 one-off schedules `mlf_fill_blank_giving_01..11` run on **10/11/2026 01:00-06:00** (every 30 min) the Schedule function `mlf_fill_blank_giving_run` -> standalone `mlf_fill_blank_giving("0")` (~800 Contacts per run) -> `mlf_aggregate_contact_giving(id, true)`. Before: 8,894 blank of 21,491 Contacts.
+- Bulk batches 1-5 (pages 10-108) show "Completed 27/10/2026" on the Schedules page: P1 ran (the user created the schedules). Spot checks still owed.
+- `mlf_refresh_pages` in the repo now passes `stampEmpty` true; **the Zoho copy is still the old (false) version**.
+- Test contact for D19: Titus Gwemende 901783000003919050 (was all blank; now £0, stamped 2026-11-09).
+
 ## Current state (end of 2026-10-26)
 - **Repo:** all of this session's work is committed locally on `main`; the final push was denied by the permission check and is run by the user (`! git push origin main`). Run `git status -sb` first: if it says `ahead`, push is still pending. Untracked: `widgets/income_stream/` (diagnostic and export zips, not part of this repo yet).
 - **Zoho fields (Contacts, "Life Time Value" section):** the 6 original giving fields plus `Giving_YTD_Total`, `Largest_Donation_Amount`, `Largest_Donation_Date`, `First_Donation_Date`.
@@ -41,7 +47,14 @@
 - **Widget:** the new version (zip `widgets/lifetime_giving/dist/lifetime_giving.zip`) is uploaded and verified on a populated contact.
 - **Bulk recalculation:** Contacts pages **1-9 done** (1,800 contacts; 1,521 updated, 279 skipped as never-donors) by running `mlf_refresh_pages` from the function editor. Pages 10-108 are covered by the batch functions: batch 1 = pages 10-20, batch 2 = 21-40, batch 3 = 41-60, batch 4 = 61-80, batch 5 = 81-108. Never-donors are skipped by design (D14).
 
-## Next steps (in order)
+## Next steps (in order) - updated 2026-11-09
+1. **Morning of 10/11:** COQL `select COUNT(id) from Contacts where Lifetime_Giving_Total is null` (expect 0 or a few); check Schedules page (11 x Completed) and function Logs/Failures of `mlf_fill_blank_giving_run`; spot-check 3 Contacts; health checks (Jillian Atkins, James Wilson). If blanks remain, run `mlf_fill_blank_giving` with `0` from the editor.
+2. With user OK: Contacts workflow rule, On Create, `Lifetime Giving Total is empty` -> Field Update `Lifetime Giving Total = 0` (test on one test Contact; user deletes it).
+3. With user OK: redeploy `mlf_refresh_pages` (stampEmpty true).
+4. User: check the Zoho Campaigns segment count after the next CRM sync.
+5. User deletes the 11 `mlf_fill_blank_giving_*` schedules and `mlf_fill_blank_giving_run` once done (keep `mlf_fill_blank_giving` for catch-up runs), plus the old `mlf_refresh_batch_*` schedules/functions if not wanted.
+
+## Next steps (in order) - 2026-10-26 (steps 1 done per the Schedules page; step 2 still open)
 1. **User:** create the 5 one-off schedules (guide section 6), staggered 30+ minutes apart, and let them run (about 8-10 min for batch 1, about 15-17 min for batches 2-4, about 25 min for batch 5, at roughly 0.22 s per contact).
 2. **User or next session:** check each function's Logs/Failures and the Schedules page; spot-check 3-4 contacts across the page ranges (compare against the expected values method used for Jillian Atkins, via `getRecord` or COQL).
 3. After a clean run, switch the schedules off or delete them and the five batch functions if not wanted (user deletes).
@@ -60,3 +73,6 @@
 Done: added YTD / largest / first-gift to the widget and the calculation; created 4 Contact fields; moved Deluge into git; fixed £0/negative handling (D9) and the "no donation received" state (D10, D11); refactored to one shared function with thin wrappers (D12-D17); audited every caller of the old functions; deployed and tested the new functions in Zoho; replaced the donation-trigger workflow function; recalculated Contacts pages 1-9; created the five batch functions; wrote `docs/zoho-setup-guide.md` and `docs/audit-2026-10-26.md`.
 Handed back to the user: create the schedules, run them, verify, clean up.
 Next session: follow "Next steps" above.
+
+### 2026-11-09 - Lifetime Giving £0 for never-donors (Opus 5.5)
+Need: Zoho Campaigns segments on Lifetime Giving miss Contacts whose value is blank. Found 8,894 blanks (no donations in samples). Wrote `mlf_fill_blank_giving` + schedule wrapper, flipped `mlf_refresh_pages` to stamp never-donors (D19); tested on Titus Gwemende via the button; created both functions and 11 overnight one-off schedules in Zoho via Chrome at the user's request. Next: verify the run on 10/11, then the on-create workflow rule and the `mlf_refresh_pages` redeploy (user OK each).
