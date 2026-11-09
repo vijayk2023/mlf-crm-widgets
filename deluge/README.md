@@ -11,6 +11,7 @@ Source of truth for the Zoho CRM functions behind the giving widget. Edit the fi
 | `mlf_donation_trigger_aggregation.dg` | automation | Wrapper called by the workflow rule "Auto-Update Giving Summary" on every Donation create/edit. **Draft; compare with the code in Zoho first.** |
 | `mlf_refresh_pages.dg` | standalone | Loops Contacts pages (200 per page) and calls the shared function with `stampEmpty` true (D19: never-donors get £0). |
 | `mlf_fill_blank_giving.dg` | standalone | Backfill (D19): runs the shared function (stampEmpty true) on every Contact whose `Lifetime_Giving_Total` is blank, ~800 per run via COQL (`crm_coql`). Run with `0`, then the returned `lastId`, until `more: no`. Rerun with `0` to catch blanks later. |
+| `mlf_fill_blank_giving_run.dg` | schedule | Wrapper: `mlf_fill_blank_giving("0")`, attached to the one-off overnight schedules. Throwaway after the backfill. |
 | `mlf_refresh_batch_1.dg` ... `_5.dg` | schedule | One-line wrappers: pages 1-20, 21-40, 41-60, 61-80, 81-108. Keep **off** unless a bulk run is wanted. |
 
 Change the calculation in one file only. Retired copies (do not recreate): `mlf_lifetime_giving_aggregation`, `..._aggregation1`, `..._aggregation2`, `mlf_nightly_giving_refresh` (see decisions.md D12-D13).

@@ -1,0 +1,7 @@
+void schedule.mlf_fill_blank_giving_run()
+{
+// Schedule wrapper for the D19 backfill. Each run starts from "0": Contacts already filled are no longer blank, so every run takes the next ~800.
+// Attached to one-off schedules (2026-11-10 01:00-04:20, every 20 min). Throwaway after the backfill; the user deletes.
+summary = standalone.mlf_fill_blank_giving("0");
+info "Fill blank giving run complete. " + summary;
+}
