@@ -1,0 +1,6 @@
+void schedule.mlf_nightly_changed_run()
+{
+// Schedule wrapper (D20): Daily 01:00 Europe/London. Refreshes Contacts whose Donations changed since yesterday, plus blank Lifetime Giving.
+summary = standalone.mlf_nightly_giving_refresh("changed");
+info "Nightly changed run complete. " + summary;
+}

@@ -1,2 +1,5 @@
-
 node_modules/
+# PII: exports and reports stay local
+data/
+*.csv
+*.xlsx

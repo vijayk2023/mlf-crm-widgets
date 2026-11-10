@@ -1,114 +1,184 @@
-string standalone.mlf_aggregate_contact_giving(String id, bool stampEmpty)
+string standalone.mlf_aggregate_contact_giving(String id,Bool stampEmpty)
 {
-// Single source of truth for the giving summary on a Contact.
-// Called by the button wrapper (stampEmpty = true) and by mlf_refresh_pages (stampEmpty = false).
-contactId = id.trim();
-if(contactId == null || contactId == "")
-{
-    return "Skipped: empty ID";
-}
-criteria = "(Contact:equals:" + contactId + ")";
-allDonations = zoho.crm.searchRecords("Donation",criteria,1,200);
-if(allDonations == null)
-{
-    allDonations = List();
-}
-// No donations: the button stamps the contact (clears stale values, sets Giving_Last_Updated); bulk refreshes skip them to save API calls
-if(allDonations.size() == 0 && !stampEmpty)
-{
-    return "Skipped: no donations for " + contactId;
-}
-lifetimeTotal = 0.0;
-giftAidTotal = 0.0;
-lastDate = null;
-lastAmount = 0.0;
-ytdTotal = 0.0;
-largestAmount = 0.0;
-largestDate = null;
-firstDate = null;
-currentYear = zoho.currentdate.toString("yyyy");
-yearMap = Map();
-for each  don in allDonations
-{
-    received = don.get("Received_Amount");
-    if(received == null || received == "")
-    {
-        received = "0";
-    }
-    received = received.toDecimal();
-    ga = don.get("Gift_Aid_Amount");
-    if(ga == null || ga == "")
-    {
-        ga = "0";
-    }
-    ga = ga.toDecimal();
-    donDate = don.get("Donation_Date");
-    if(donDate != null && donDate != "")
-    {
-        yr = donDate.toString().subString(0,4);
-        // Totals are net (refunds/reversals are negative). Zero-amount records add nothing, so years with only those are left out of the breakdown
-        if(received != 0)
-        {
-            prev = yearMap.get(yr);
-            if(prev == null)
-            {
-                prev = 0.0;
-            }
-            yearMap.put(yr,prev + received);
-        }
-        if(yr == currentYear)
-        {
-            ytdTotal = ytdTotal + received;
-        }
-        // First, last and largest only consider real gifts (amount above zero)
-        if(received > 0)
-        {
-            if(lastDate == null || donDate.toDate() > lastDate.toDate())
-            {
-                lastDate = donDate;
-                lastAmount = received;
-            }
-            if(firstDate == null || donDate.toDate() < firstDate.toDate())
-            {
-                firstDate = donDate;
-            }
-            // Largest gift: higher amount wins; on a tie the more recent gift wins
-            if(largestDate == null || received > largestAmount || (received == largestAmount && donDate.toDate() > largestDate.toDate()))
-            {
-                largestAmount = received;
-                largestDate = donDate;
-            }
-        }
-    }
-    lifetimeTotal = lifetimeTotal + received;
-    giftAidTotal = giftAidTotal + ga;
-}
-sortedYears = yearMap.keys().sort();
-yearBreakdown = "";
-for each  yr in sortedYears
-{
-    amt = yearMap.get(yr).round(2);
-    if(yearBreakdown == "")
-    {
-        yearBreakdown = yr + ": £" + amt.toString();
-    }
-    else
-    {
-        yearBreakdown = yearBreakdown + " | " + yr + ": £" + amt.toString();
-    }
-}
-today = zoho.currentdate.toString("yyyy-MM-dd");
-updateMap = Map();
-updateMap.put("Lifetime_Giving_Total",lifetimeTotal.round(2));
-updateMap.put("Gift_Aid_Lifetime_Total",giftAidTotal.round(2));
-updateMap.put("Last_Donation_Amount",lastAmount.round(2));
-updateMap.put("Last_Donation_Date",lastDate);
-updateMap.put("Giving_Year_Breakdown",yearBreakdown);
-updateMap.put("Giving_Last_Updated",today);
-updateMap.put("Giving_YTD_Total",ytdTotal.round(2));
-updateMap.put("Largest_Donation_Amount",largestAmount.round(2));
-updateMap.put("Largest_Donation_Date",largestDate);
-updateMap.put("First_Donation_Date",firstDate);
-updateResp = zoho.crm.updateRecord("Contacts",contactId,updateMap);
-return "Updated: " + contactId + " | Lifetime: £" + lifetimeTotal.round(2).toString() + " | YTD: £" + ytdTotal.round(2).toString() + " | Largest: £" + largestAmount.round(2).toString() + " on " + largestDate + " | First: " + firstDate + " | UpdateResp: " + updateResp.toString();
+	// DEPLOYED 2026-10-27 (replaced the original; Zoho keeps the previous version under Revisions for rollback).
+	// Same output fields and same rules as the previous function. What changed:
+	//   1. Donations are read with COQL (paged by id, 200 per page, up to 2,000) instead of searchRecords(..., 1, 200):
+	//      fixes contacts with more than 200 donations (e.g. the Anonymous contact) and avoids search-index lag.
+	//   2. A failed read is retried up to 3 times; if it still fails the function returns "ERROR: ..." and writes nothing.
+	//      Today a failed read is treated as "no donations" and the contact is silently skipped (the cause of the 1,256).
+	//   3. The result of updateRecord is checked; a failed write returns "ERROR: update failed ..." instead of "Updated".
+	// Needs connection crm_coql (EU). Callers should treat any result that starts with "ERROR" as a failure to retry/log.
+	contactId = id.trim();
+	if(contactId == null || contactId == "")
+	{
+		return "Skipped: empty ID";
+	}
+	allDonations = List();
+	lastId = "0";
+	keepGoing = true;
+	readError = false;
+	pageStr = "0,1,2,3,4,5,6,7,8,9";
+	for each  pg in pageStr.toList()
+	{
+		if(keepGoing == true && readError == false)
+		{
+			q = "select id, Received_Amount, Gift_Aid_Amount, Donation_Date from Donation where (Contact = " + contactId + " and id > " + lastId + ") order by id asc limit 200";
+			payload = Map();
+			payload.put("select_query", q);
+			pageRows = List();
+			pageOk = false;
+			tryStr = "1,2,3";
+			for each  tryNo in tryStr.toList()
+			{
+				if(pageOk == false)
+				{
+					resp = invokeurl
+					[
+						url :"https://www.zohoapis.eu/crm/v8/coql"
+						type :POST
+						parameters:payload.toString()
+						connection:"crm_coql"
+					];
+					respText = ifnull(resp, "").toString();
+					if(respText == "")
+					{
+						// empty response = no more donations
+						pageOk = true;
+					}
+					else if(respText.contains("data") && !respText.contains("error"))
+					{
+						pageRows = resp.get("data");
+						pageOk = true;
+					}
+				}
+			}
+			if(pageOk == false)
+			{
+				readError = true;
+			}
+			else
+			{
+				for each  r in pageRows
+				{
+					allDonations.add(r);
+					lastId = r.get("id").toString();
+				}
+				if(pageRows.size() < 200)
+				{
+					keepGoing = false;
+				}
+			}
+		}
+	}
+	if(readError == true)
+	{
+		return "ERROR: could not read donations for " + contactId;
+	}
+	// Safety cap: more than 2,000 donations (e.g. the Anonymous contact) would exceed Deluge's per-run statement limit.
+	// Do not write a partial total; leave the contact unchanged and report it.
+	if(keepGoing == true)
+	{
+		return "Skipped: more than 2000 donations for " + contactId + ", not calculated";
+	}
+	// No donations: the button stamps the contact; bulk refreshes skip them (unchanged behaviour)
+	if(allDonations.size() == 0 && !stampEmpty)
+	{
+		return "Skipped: no donations for " + contactId;
+	}
+	// ---- from here on identical to the current function, except the final update check ----
+	lifetimeTotal = 0.0;
+	giftAidTotal = 0.0;
+	lastDate = null;
+	lastAmount = 0.0;
+	ytdTotal = 0.0;
+	largestAmount = 0.0;
+	largestDate = null;
+	firstDate = null;
+	currentYear = zoho.currentdate.toString("yyyy");
+	yearMap = Map();
+	for each  don in allDonations
+	{
+		received = don.get("Received_Amount");
+		if(received == null || received == "")
+		{
+			received = "0";
+		}
+		received = received.toDecimal();
+		ga = don.get("Gift_Aid_Amount");
+		if(ga == null || ga == "")
+		{
+			ga = "0";
+		}
+		ga = ga.toDecimal();
+		donDate = don.get("Donation_Date");
+		if(donDate != null && donDate != "")
+		{
+			yr = donDate.toString().subString(0,4);
+			if(received != 0)
+			{
+				prev = yearMap.get(yr);
+				if(prev == null)
+				{
+					prev = 0.0;
+				}
+				yearMap.put(yr,prev + received);
+			}
+			if(yr == currentYear)
+			{
+				ytdTotal = ytdTotal + received;
+			}
+			if(received > 0)
+			{
+				if(lastDate == null || donDate.toDate() > lastDate.toDate())
+				{
+					lastDate = donDate;
+					lastAmount = received;
+				}
+				if(firstDate == null || donDate.toDate() < firstDate.toDate())
+				{
+					firstDate = donDate;
+				}
+				// Largest gift: higher amount wins; on a tie the more recent gift wins (same as the previous function)
+				if(largestDate == null || received > largestAmount || received == largestAmount && donDate.toDate() > largestDate.toDate())
+				{
+					largestAmount = received;
+					largestDate = donDate;
+				}
+			}
+		}
+		lifetimeTotal = lifetimeTotal + received;
+		giftAidTotal = giftAidTotal + ga;
+	}
+	sortedYears = yearMap.keys().sort();
+	yearBreakdown = "";
+	for each  yr in sortedYears
+	{
+		amt = yearMap.get(yr).round(2);
+		if(yearBreakdown == "")
+		{
+			yearBreakdown = yr + ": £" + amt.toString();
+		}
+		else
+		{
+			yearBreakdown = yearBreakdown + " | " + yr + ": £" + amt.toString();
+		}
+	}
+	today = zoho.currentdate.toString("yyyy-MM-dd");
+	updateMap = Map();
+	updateMap.put("Lifetime_Giving_Total",lifetimeTotal.round(2));
+	updateMap.put("Gift_Aid_Lifetime_Total",giftAidTotal.round(2));
+	updateMap.put("Last_Donation_Amount",lastAmount.round(2));
+	updateMap.put("Last_Donation_Date",lastDate);
+	updateMap.put("Giving_Year_Breakdown",yearBreakdown);
+	updateMap.put("Giving_Last_Updated",today);
+	updateMap.put("Giving_YTD_Total",ytdTotal.round(2));
+	updateMap.put("Largest_Donation_Amount",largestAmount.round(2));
+	updateMap.put("Largest_Donation_Date",largestDate);
+	updateMap.put("First_Donation_Date",firstDate);
+	updateResp = zoho.crm.updateRecord("Contacts",contactId,updateMap);
+	if(!updateResp.toString().contains(contactId))
+	{
+		return "ERROR: update failed for " + contactId + " | " + updateResp.toString();
+	}
+	return "Updated: " + contactId + " | Lifetime: £" + lifetimeTotal.round(2).toString() + " | YTD: £" + ytdTotal.round(2).toString() + " | Largest: £" + largestAmount.round(2).toString() + " on " + largestDate + " | First: " + firstDate + " | UpdateResp: " + updateResp.toString();
 }

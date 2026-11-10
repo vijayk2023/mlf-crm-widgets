@@ -6,12 +6,15 @@ Source of truth for the Zoho CRM functions behind the giving widget. Edit the fi
 ## Structure (one calculation, thin wrappers)
 | File | Type | Role |
 |------|------|------|
-| `mlf_aggregate_contact_giving.dg` | standalone | **All the logic.** Calculates and writes the giving fields for one Contact. `stampEmpty` = true writes even with no donations (button); false skips them (bulk). |
+| `mlf_aggregate_contact_giving.dg` | standalone | **All the logic.** Synced 2026-11-10 with the live hardened version (deployed 2026-10-27 from the crm-donations-giving project: COQL paging up to 2,000 donations, retries, returns `ERROR:` or `Skipped: more than 2000`). Calculates and writes the giving fields for one Contact. `stampEmpty` = true writes even with no donations (button); false skips them (bulk). |
 | `mlf_calculate_giving_history.dg` | button | One-line wrapper used by **all three** "Calculate Giving History" buttons. |
 | `mlf_donation_trigger_aggregation.dg` | automation | Wrapper called by the workflow rule "Auto-Update Giving Summary" on every Donation create/edit. **Draft; compare with the code in Zoho first.** |
 | `mlf_refresh_pages.dg` | standalone | Loops Contacts pages (200 per page) and calls the shared function with `stampEmpty` true (D19: never-donors get £0). |
 | `mlf_fill_blank_giving.dg` | standalone | Backfill (D19): runs the shared function (stampEmpty true) on every Contact whose `Lifetime_Giving_Total` is blank, ~800 per run via COQL (`crm_coql`). Run with `0`, then the returned `lastId`, until `more: no`. Rerun with `0` to catch blanks later. |
 | `mlf_fill_blank_giving_run.dg` | schedule | Wrapper: `mlf_fill_blank_giving("0")`, attached to the one-off overnight schedules. Throwaway after the backfill. |
+| `mlf_nightly_giving_refresh.dg` | standalone | **Nightly refresh (D20).** Mode `changed` = donors whose Donations were created/edited since yesterday + blank Lifetime Giving; `rolling` = the 800 Contacts refreshed longest ago (all Contacts every ~2 weeks). Add `-dry` to list without writing. Excludes Anonymous. Counts Updated/Skipped/Errors separately. |
+| `mlf_nightly_changed_run.dg` | schedule | Wrapper: `changed`, Daily 01:00. |
+| `mlf_nightly_rolling_run.dg` | schedule | Wrapper: `rolling`, Daily 01:30 and 02:00 (two schedules). |
 | `mlf_refresh_batch_1.dg` ... `_5.dg` | schedule | One-line wrappers: pages 1-20, 21-40, 41-60, 61-80, 81-108. Keep **off** unless a bulk run is wanted. |
 
 Change the calculation in one file only. Retired copies (do not recreate): `mlf_lifetime_giving_aggregation`, `..._aggregation1`, `..._aggregation2`, `mlf_nightly_giving_refresh` (see decisions.md D12-D13).

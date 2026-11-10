@@ -1,0 +1,6 @@
+void schedule.mlf_nightly_rolling_run()
+{
+// Schedule wrapper (D20): Daily 01:30 and 02:00 Europe/London (two schedules, same function). Each run refreshes the 800 Contacts updated longest ago.
+summary = standalone.mlf_nightly_giving_refresh("rolling");
+info "Nightly rolling run complete. " + summary;
+}
