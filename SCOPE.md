@@ -9,14 +9,14 @@ Show each donor's giving history on the Contact (Lifetime Giving widget) from to
 ## Out of scope (unless agreed)
 - Donation import/sync (see other projects); income_stream diagnostic widgets (untracked, undecided).
 
-## Goals and status (as of 2026-11-09)
+## Goals and status (as of 2026-11-10)
 | Goal | Status |
 |---|---|
 | 1. Widget shows lifetime, YTD, Gift Aid, last/largest/first gift | Done, verified |
 | 2. One shared calculation function + wrappers | Done (D12-D17) |
 | 3. Live workflow keeps contacts current | Done |
 | 4. Bulk recalculation of all Contacts | Done: pages 1-9 2026-10-26, batches 1-5 completed 27/10 (spot checks pending) |
-| 6. Every Contact has a Lifetime Giving value (£0 for never-donors) for Zoho Campaigns segments (D19) | Backfill scheduled 10/11 01:00-06:00; on-create rule and refresh redeploy pending OK |
+| 6. Every Contact has a Lifetime Giving value (£0 for never-donors) for Zoho Campaigns segments (D19) | Backfill ran 10/11: 8,894 -> 93 blanks (one more editor run needed); on-create rule and refresh redeploy pending OK |
 | 5. Edge cases (>200 donations, January YTD refresh) | Not started |
 
 ## Success criteria

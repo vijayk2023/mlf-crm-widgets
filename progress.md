@@ -4,6 +4,10 @@ Newest first. One entry per meaningful change; commit labels follow `type(scope)
 (types `feat` `fix` `chore` `docs`; scopes `deluge` `widget` `crm` `docs`).
 Per-session status and next steps live in [sessions.md](sessions.md); the reasoning behind changes is in [decisions.md](decisions.md).
 
+## 2026-11-10
+- `crm` audit (read-only, Zoho CRM MCP): overnight backfill result: blank `Lifetime_Giving_Total` 8,894 -> 93; = 0 1,013 -> 9,814 (+8,801); Contacts 21,485. Remaining 93 = highest IDs (11 runs x 800 = 8,800 cap). Schedule logs not yet read. No writes.
+- `docs`: test-record baselines updated (Jillian Atkins £2,820 / YTD £550 / largest £500 2026-06-25; James Wilson £11.99 on 2026-10-08); SUGGESTED NEXT block in `WORKSPACE-PROGRESS.md`; resume rule in `CLAUDE.md`.
+
 ## 2026-11-09
 - `feat(deluge)` ec5a92f, ee33898: `mlf_fill_blank_giving` (standalone backfill) and `mlf_fill_blank_giving_run` (schedule wrapper); `mlf_refresh_pages` now stamps never-donors (`stampEmpty` true). D19.
 - `crm` (Claude, Chrome): read-only counts: 21,491 Contacts, 8,894 blank `Lifetime_Giving_Total` (all also blank `Giving_Last_Updated`), 1,013 at 0; 73 sampled blanks had no Donation records.

@@ -6,6 +6,8 @@
 
 Lifetime Giving widget on Contacts plus the Deluge functions that calculate giving totals.
 
+**Resume rule (user request, 2026-11-10):** when the user says "resume the Lifetime Giving project" (or similar), after the dashboard and org guard: show the **Lifetime Giving: pending items** table from `WORKSPACE-PROGRESS.md` section 1 (status + what each needs), run the section 3 health checks and report drift against the baselines, then show the **SUGGESTED NEXT** list with a recommended first pick and ask which to take. Refresh that block at every session end.
+
 **Start every session by reading `sessions.md`** - the "START HERE" block has the model/effort used last time, tools, rules, test records and the next steps. Then `decisions.md` if you need the why, `docs/zoho-setup-guide.md` for how Zoho is wired, `deluge/README.md` for the functions.
 
 At the end of a session: update `sessions.md` (Current state, Next steps, session log), `progress.md` (change log) and `decisions.md` (new decisions only), then the workspace-level `WORKSPACE-PROGRESS.md`, `SCOPE.md` and `../../PROJECTS.md` row. Commit locally with labels `type(scope): summary`.
