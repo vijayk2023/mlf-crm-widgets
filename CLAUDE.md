@@ -1,7 +1,7 @@
 # Project: crm-giving-widgets   (MLF CRM widgets)
 
 **Apps:** CRM  (load `shared/zoho-crm.md`)
-**Status:** see `../../PROJECTS.md`. Files: `WORKSPACE-PROGRESS.md` (dashboard-level pending/decisions/state/log; NOT `PROGRESS.md`, which is the same file as the change log `progress.md` on Windows), `SCOPE.md`, plus this repo's own detailed logs `sessions.md` (START HERE), `progress.md` (change log), `decisions.md` (D1-D18).
+**Status:** see `../../PROJECTS.md`. Files: `WORKSPACE-PROGRESS.md` (dashboard-level pending/decisions/state/log; NOT `PROGRESS.md`, which is the same file as the change log `progress.md` on Windows), `SCOPE.md`, plus this repo's own detailed logs `sessions.md` (START HERE), `progress.md` (change log), `decisions.md` (D1-D20).
 **Nested repo:** this folder is its own git repo (`vijayk2023/mlf-crm-widgets`, branch `main`). The parent workspace repo ignores it. Commit docs/code HERE; push only when the user asks (`! git push origin main` if denied).
 
 Lifetime Giving widget on Contacts plus the Deluge functions that calculate giving totals.
