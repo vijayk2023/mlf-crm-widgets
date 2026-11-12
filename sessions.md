@@ -7,7 +7,7 @@
 
 **What this project is:** a Zoho CRM widget plus the Deluge functions behind it for the MicroLoan Foundation (MLF). The "Lifetime Giving" widget on a Contact shows: lifetime total, YTD, Gift Aid, last gift, largest gift, first gift, and giving by year. The numbers are stored on Contact fields and written by Deluge functions. Widget code is in `widgets/lifetime_giving/`; Deluge in `deluge/`; Zoho how-to in `docs/zoho-setup-guide.md`; why-we-did-it in `decisions.md`.
 
-**How the previous session ran (2026-11-10):** model **Claude Opus 5.5** (`claude-opus-5-5`), Claude Code in a Windows terminal (earlier: Sonnet 5.5 on 2026-10-26, Opus 5.5 on 2026-11-09). The user is non-technical-friendly: explain plainly, give numbered steps, keep answers short, show a table when comparing.
+**How the previous session ran (2026-11-10, docs closed 2026-11-12):** model **Claude Opus 5.5** (`claude-opus-5-5`), Claude Code in a Windows terminal (earlier: Sonnet 5.5 on 2026-10-26, Opus 5.5 on 2026-11-09). The user is non-technical-friendly: explain plainly, give numbered steps, keep answers short, show a table when comparing.
 
 **Tools the previous session used (re-check they are connected):**
 - **Zoho CRM MCP** (`mcp__claude_ai_Zoho_CRM__*`) connected to the **MicroLoan org**, EU data centre. Good for `getFields`, `getRecord`, `executeCOQLQuery` (COQL has no `group by` on lookups), `createFields`. It **cannot** see functions, buttons, workflows or schedules.
@@ -31,7 +31,14 @@
 | Gillian Eatwell | 901783000002352993 | One £50 gift 2026-02-23: all of YTD, largest, first, last match it |
 
 ---
-## Current state (2026-11-10) - READ THIS FIRST
+## Current state (2026-11-12) - READ THIS FIRST
+- **Nightly giving refresh is live (D20).** `mlf_nightly_giving_refresh` + wrappers on 3 Daily schedules: 01:00 changed (donors with new/edited donations + blank Lifetime Giving), 01:30 and 02:00 rolling (800 Contacts each, oldest `Giving_Last_Updated` first; Anonymous excluded). Every Contact is re-checked about every 2 weeks.
+- Blank Lifetime Giving = 0 since 10/11. Stamped per day: 1,721 (11/11), 1,617 (12/11).
+- Watch: statement limit on rolling runs (Schedules > Failures) - P13.
+- Repo commits d2e5a91, d504009 + docs are local; push is the user's (P7).
+- ~9.8k Contacts have no Donation at all: blank Last Donation Date is correct for them.
+
+## Current state (2026-11-10)
 - **Overnight £0 backfill ran (10/11 01:00-06:00) and was audited read-only:** blank Lifetime Giving 8,894 -> **93**; £0 Contacts 1,013 -> 9,814; total Contacts 21,485. The 93 left are the highest IDs, because 11 runs x 800 = 8,800 is just short of 8,894 (capacity, not errors). Schedule Logs/Failures not read yet.
 - Nothing written to Zoho on 2026-11-10. The 11 schedules and `mlf_fill_blank_giving_run` still exist (user deletes after P8 reaches 0).
 - On resume, show the pending table and the SUGGESTED NEXT block from `WORKSPACE-PROGRESS.md` section 1 (see the resume rule in `CLAUDE.md`).
@@ -52,7 +59,13 @@
 - **Widget:** the new version (zip `widgets/lifetime_giving/dist/lifetime_giving.zip`) is uploaded and verified on a populated contact.
 - **Bulk recalculation:** Contacts pages **1-9 done** (1,800 contacts; 1,521 updated, 279 skipped as never-donors) by running `mlf_refresh_pages` from the function editor. Pages 10-108 are covered by the batch functions: batch 1 = pages 10-20, batch 2 = 21-40, batch 3 = 41-60, batch 4 = 61-80, batch 5 = 81-108. Never-donors are skipped by design (D14).
 
-## Next steps (in order) - updated 2026-11-10
+## Next steps (in order) - updated 2026-11-12
+1. Read-only: Setup > Schedules > Failures for `mlf_nightly_*`; function Logs of `mlf_nightly_giving_refresh`; COQL stamped-yesterday count (expect ~1,600+). If a rolling run failed on the statement limit: propose cap 400 + rolling schedules 02:30/03:00 (user OK).
+2. User deletes obsolete schedules/functions (P12).
+3. Duplicate report once the user gives a Contacts export (P14).
+4. User pushes this repo (P7).
+
+## Next steps (in order) - 2026-11-10 (step 1 done; step 3 dropped)
 1. **With user OK:** run `mlf_fill_blank_giving` with `0` once from the function editor (fills the remaining 93 blanks; one run takes up to 800). Then in Chrome: Schedules page (11 x Completed) and Logs/Failures of `mlf_fill_blank_giving_run`; COQL blank count (target 0); spot-check 3 of the 93 (K J Payling 901783000003563060, Toby Wines 901783000003544002, Cynthia Siwila 901783000002352285).
 2. With user OK: Contacts workflow rule, On Create, `Lifetime Giving Total is empty` -> Field Update `Lifetime Giving Total = 0` (test on one test Contact; user deletes it).
 3. With user OK: redeploy `mlf_refresh_pages` (stampEmpty true).
@@ -84,3 +97,6 @@ Need: Zoho Campaigns segments on Lifetime Giving miss Contacts whose value is bl
 
 ### 2026-11-10 - Audit of the overnight £0 backfill (Opus 5.5, read-only)
 Org guard OK. Blanks 8,894 -> 93, £0 1,013 -> 9,814. The 93 left are the highest IDs: 11 runs x 800 cap = 8,800, just short. Test-contact baselines updated (Jillian and James have new gifts). No Zoho writes; schedule logs not read. Next: with user OK, one editor run of `mlf_fill_blank_giving("0")`, then the user deletes the schedules, then P9 / P10.
+
+### 2026-11-10 - Nightly giving refresh D20 (Opus 5.5; docs closed 2026-11-12)
+User saw ~9.8k Contacts with empty Last Donation Date: they have no Donation linked (blank is correct). Built `mlf_nightly_giving_refresh` (changed/rolling, -dry) + 2 schedule wrappers, synced the repo's shared function with the live hardened one, created all in Zoho, one real changed run (99 updated, 0 errors, blanks 93 -> 0), 3 Daily schedules from 11/11. Found the 27/10 batches 2-5 had failed on the statement limit. First two nights stamped 1,721 and 1,617 Contacts. Next: P13 check Failures, P12 user deletes, P14 duplicates, P7 push.

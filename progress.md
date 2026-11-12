@@ -4,6 +4,14 @@ Newest first. One entry per meaningful change; commit labels follow `type(scope)
 (types `feat` `fix` `chore` `docs`; scopes `deluge` `widget` `crm` `docs`).
 Per-session status and next steps live in [sessions.md](sessions.md); the reasoning behind changes is in [decisions.md](decisions.md).
 
+## 2026-11-12
+- `crm` check (read-only): nightly schedules ran: 1,721 Contacts stamped 11/11, 1,617 on 12/11; blank Lifetime Giving 0. Failures tab not yet read (P13).
+
+## 2026-11-10 (Session 4)
+- `fix(deluge)`/`feat(deluge)` d2e5a91, d504009: `mlf_aggregate_contact_giving.dg` synced with the live hardened version (deployed 27/10 from crm-donations-giving); new `mlf_nightly_giving_refresh` (changed/rolling, -dry), wrappers `mlf_nightly_changed_run`, `mlf_nightly_rolling_run`; `.gitignore` adds data/, *.csv, *.xlsx. D20.
+- `crm` (Claude, Chrome, user-approved): created the 3 functions in Zoho; dry runs OK; real changed run 99 updated / 0 errors (39 s); blanks 93 -> 0 (P8 done). Created Daily schedules `mlf_nightly_changed_0100`, `mlf_nightly_rolling_0130`, `mlf_nightly_rolling_0200` (from 11/11/2026).
+- `crm` discovery: Schedules > Failures shows `mlf_refresh_batch_2..5` (27/10) stopped on the 200,000-statement limit, although the list says "Completed".
+
 ## 2026-11-10
 - `crm` audit (read-only, Zoho CRM MCP): overnight backfill result: blank `Lifetime_Giving_Total` 8,894 -> 93; = 0 1,013 -> 9,814 (+8,801); Contacts 21,485. Remaining 93 = highest IDs (11 runs x 800 = 8,800 cap). Schedule logs not yet read. No writes.
 - `docs`: test-record baselines updated (Jillian Atkins £2,820 / YTD £550 / largest £500 2026-06-25; James Wilson £11.99 on 2026-10-08); SUGGESTED NEXT block in `WORKSPACE-PROGRESS.md`; resume rule in `CLAUDE.md`.
