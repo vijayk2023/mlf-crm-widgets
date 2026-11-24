@@ -8,7 +8,8 @@ string standalone.mlf_nightly_giving_refresh(String mode)
 //   "rolling"  = the Contacts refreshed longest ago (never-stamped first), so every Contact is re-checked about every 2 weeks
 //                (fixes deleted or re-linked gifts and YTD after 1 January).
 //   add "-dry" ("changed-dry", "rolling-dry") to list what would be refreshed without writing anything.
-// Cap: 800 Contacts per run (5-minute / 200,000-statement limits). Anonymous (more than 2,000 donations) is always excluded.
+// Cap: 800 Contacts per run (5-minute limit) AND a statement budget of 150,000 estimated from gift counts (P13, 2026-11-24;
+// the 200,000-statement limit stopped 6 runs between 13/11 and 24/11). Anonymous (more than 2,000 donations) is always excluded.
 // Needs connection crm_coql (EU).
 modeText = mode.trim().toLowerCase();
 dryRun = modeText.endsWith("-dry");
@@ -207,6 +208,80 @@ else
 		}
 	}
 }
+// Statement budget (P13, 2026-11-24): Deluge stops a run at 200,000 statements, and the cost grows with each Contact's
+// number of gifts (about 25 statements per gift, measured on the 24/11 failure), not with the number of Contacts.
+// Count the gifts of every candidate (COQL group by, 50 ids per call) and keep Contacts in order until the estimate
+// reaches budgetMax; the rest stay oldest/first in line for the next run. A single Contact above budgetMax is skipped.
+budgetMax = 150000;
+perGift = 30;
+perContact = 150;
+giftCount = Map();
+chunk = List();
+counter = 0;
+for each  cid in toDo
+{
+	chunk.add(cid);
+	counter = counter + 1;
+	if(chunk.size() == 50 || counter == toDo.size())
+	{
+		q = "select Contact, COUNT(id) from Donation where Contact in (" + chunk.toString(",") + ") group by Contact limit 200";
+		payload = Map();
+		payload.put("select_query",q);
+		resp = invokeurl
+		[
+			url :"https://www.zohoapis.eu/crm/v8/coql"
+			type :POST
+			parameters:payload.toString()
+			headers:headerMap
+			connection:"crm_coql"
+		];
+		countRows = List();
+		if(resp.toString().contains("\"data\""))
+		{
+			countRows = resp.get("data");
+		}
+		for each  row in countRows
+		{
+			c = row.get("Contact");
+			if(c != null)
+			{
+				giftCount.put(c.get("id").toString(),row.get("COUNT(id)").toString().toLong());
+			}
+		}
+		chunk = List();
+	}
+}
+planned = List();
+budgetUsed = 0;
+budgetFull = false;
+deferredCount = 0;
+tooBigCount = 0;
+for each  cid in toDo
+{
+	g = giftCount.get(cid);
+	if(g == null)
+	{
+		g = 0;
+	}
+	cost = perContact + g * perGift;
+	if(cost > budgetMax)
+	{
+		tooBigCount = tooBigCount + 1;
+		info "Skipped (too many gifts for one run): " + cid + " gifts " + g.toString();
+	}
+	else if(budgetFull == false && budgetUsed + cost <= budgetMax)
+	{
+		planned.add(cid);
+		budgetUsed = budgetUsed + cost;
+	}
+	else
+	{
+		budgetFull = true;
+		deferredCount = deferredCount + 1;
+	}
+}
+selectedCount = toDo.size();
+toDo = planned;
 // Process
 updatedCount = 0;
 skippedCount = 0;
@@ -244,7 +319,7 @@ for each  cid in toDo
 		sampleCount = sampleCount + 1;
 	}
 }
-summary = "Mode: " + modeText + " | To refresh: " + toDo.size().toString();
+summary = "Mode: " + modeText + " | Selected: " + selectedCount.toString() + " | To refresh: " + toDo.size().toString() + " (budget " + budgetUsed.toString() + " of " + budgetMax.toString() + ", deferred " + deferredCount.toString() + ", too big " + tooBigCount.toString() + ")";
 if(baseMode == "changed")
 {
 	summary = summary + " (changed donors: " + changedFound.toString() + ", already done today: " + alreadyToday.toString() + ", blank: " + blankFound.toString() + ")";
