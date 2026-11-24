@@ -15,6 +15,9 @@ Source of truth for the Zoho CRM functions behind the giving widget. Edit the fi
 | `mlf_nightly_giving_refresh.dg` | standalone | **Nightly refresh (D20).** Mode `changed` = donors whose Donations were created/edited since yesterday + blank Lifetime Giving; `rolling` = the 800 Contacts refreshed longest ago (all Contacts every ~2 weeks). Add `-dry` to list without writing. Excludes Anonymous. Counts Updated/Skipped/Errors separately. |
 | `mlf_nightly_changed_run.dg` | schedule | Wrapper: `changed`, Daily 01:00. |
 | `mlf_nightly_rolling_run.dg` | schedule | Wrapper: `rolling`, Daily 01:30 and 02:00 (two schedules). |
+| `mlf_aggregate_account_giving.dg` | standalone | **Accounts (P15, D21).** Same calculation as the Contact function, reading Donations by `Account`; writes the same 10 giving fields on the Account. `stampEmpty` true gives £0 to Accounts without gifts. Separate file so the live Contact function stays unchanged; merge candidates for P18. |
+| `mlf_nightly_account_giving_refresh.dg` | standalone | **Nightly Account refresh (D21).** Mode `nightly` = every Account with gifts (447 on 24/11), then blank, then oldest-updated, cap 700; `blank` = only blank Accounts (one-off £0 backfill); add `-dry` to preview. |
+| `mlf_nightly_account_run.dg` | schedule | Wrapper: `nightly`, Daily 02:30 (after the Contact runs). |
 | `mlf_refresh_batch_1.dg` ... `_5.dg` | schedule | One-line wrappers: pages 1-20, 21-40, 41-60, 61-80, 81-108. Keep **off** unless a bulk run is wanted. |
 
 Change the calculation in one file only. Retired copies (do not recreate): `mlf_lifetime_giving_aggregation`, `..._aggregation1`, `..._aggregation2`, `mlf_nightly_giving_refresh` (see decisions.md D12-D13).

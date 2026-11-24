@@ -1,0 +1,181 @@
+string standalone.mlf_nightly_account_giving_refresh(String mode)
+{
+// Nightly Account giving refresh (P15 / D21, 2026-11-24). Calculation is done by standalone.mlf_aggregate_account_giving(id, true);
+// this function only decides WHICH Accounts to refresh.
+// mode:
+//   "nightly" = every Account that has at least one Donation (447 on 2026-11-24; small, so all of them every night,
+//               which also keeps YTD right after 1 January), then fills the rest of the cap with Accounts whose
+//               Lifetime_Giving_Total is blank, then the Accounts refreshed longest ago (catches Accounts whose gifts were
+//               deleted or moved away).
+//   "blank"   = only Accounts whose Lifetime_Giving_Total is blank (used for the one-off £0 backfill of ~3,000 Accounts).
+//   add "-dry" ("nightly-dry", "blank-dry") to list what would be refreshed without writing anything.
+// Cap: 700 Accounts per run (5-minute / 200,000-statement limits). Needs connection crm_coql (EU).
+modeText = mode.trim().toLowerCase();
+dryRun = modeText.endsWith("-dry");
+baseMode = modeText.replaceAll("-dry","");
+if(baseMode != "nightly" && baseMode != "blank")
+{
+	return "ERROR: mode must be nightly, blank, nightly-dry or blank-dry";
+}
+maxAccounts = 700;
+todayStr = zoho.currentdate.toString("yyyy-MM-dd");
+headerMap = Map();
+headerMap.put("Content-Type","application/json");
+slotText = "1,2,3,4,5";
+pageSlots = slotText.toList(",");
+toDo = List();
+seen = Map();
+donorFound = 0;
+blankFound = 0;
+oldestFound = 0;
+// 1. Accounts with at least one Donation (nightly only)
+if(baseMode == "nightly")
+{
+	offsetNo = 0;
+	for each  p in pageSlots
+	{
+		if(toDo.size() < maxAccounts)
+		{
+			q = "select Account, COUNT(id) from Donation where Account is not null group by Account limit " + offsetNo.toString() + ", 200";
+			payload = Map();
+			payload.put("select_query",q);
+			resp = invokeurl
+			[
+				url :"https://www.zohoapis.eu/crm/v8/coql"
+				type :POST
+				parameters:payload.toString()
+				headers:headerMap
+				connection:"crm_coql"
+			];
+			rows = List();
+			if(resp.toString().contains("\"data\""))
+			{
+				rows = resp.get("data");
+			}
+			for each  row in rows
+			{
+				a = row.get("Account");
+				if(a != null)
+				{
+					aid = a.get("id").toString();
+					if(seen.get(aid) == null && toDo.size() < maxAccounts)
+					{
+						seen.put(aid,"x");
+						toDo.add(aid);
+						donorFound = donorFound + 1;
+					}
+				}
+			}
+			offsetNo = offsetNo + 200;
+			if(rows.size() < 200)
+			{
+				break;
+			}
+		}
+	}
+}
+// 2. Blank Lifetime Giving (both modes), then 3. oldest Giving_Last_Updated before today (nightly only)
+queries = List();
+queries.add("select id from Accounts where Lifetime_Giving_Total is null order by id asc");
+if(baseMode == "nightly")
+{
+	queries.add("select id from Accounts where Giving_Last_Updated < '" + todayStr + "' order by Giving_Last_Updated asc, id asc");
+}
+qNo = 0;
+for each  baseQ in queries
+{
+	qNo = qNo + 1;
+	offsetNo = 0;
+	for each  p in pageSlots
+	{
+		if(toDo.size() < maxAccounts)
+		{
+			payload = Map();
+			payload.put("select_query",baseQ + " limit " + offsetNo.toString() + ", 200");
+			resp = invokeurl
+			[
+				url :"https://www.zohoapis.eu/crm/v8/coql"
+				type :POST
+				parameters:payload.toString()
+				headers:headerMap
+				connection:"crm_coql"
+			];
+			rows = List();
+			if(resp.toString().contains("\"data\""))
+			{
+				rows = resp.get("data");
+			}
+			for each  row in rows
+			{
+				aid = row.get("id").toString();
+				if(seen.get(aid) == null && toDo.size() < maxAccounts)
+				{
+					seen.put(aid,"x");
+					toDo.add(aid);
+					if(qNo == 1)
+					{
+						blankFound = blankFound + 1;
+					}
+					else
+					{
+						oldestFound = oldestFound + 1;
+					}
+				}
+			}
+			offsetNo = offsetNo + 200;
+			if(rows.size() < 200)
+			{
+				break;
+			}
+		}
+	}
+}
+// Process
+updatedCount = 0;
+skippedCount = 0;
+errorCount = 0;
+errorIds = "";
+if(dryRun == false)
+{
+	for each  aid in toDo
+	{
+		result = standalone.mlf_aggregate_account_giving(aid,true);
+		if(result.startsWith("Updated"))
+		{
+			updatedCount = updatedCount + 1;
+		}
+		else if(result.startsWith("ERROR"))
+		{
+			errorCount = errorCount + 1;
+			errorIds = errorIds + aid + " ";
+			info result;
+		}
+		else
+		{
+			skippedCount = skippedCount + 1;
+			info result;
+		}
+	}
+}
+sample = "";
+sampleCount = 0;
+for each  aid in toDo
+{
+	if(sampleCount < 5)
+	{
+		sample = sample + aid + " ";
+		sampleCount = sampleCount + 1;
+	}
+}
+summary = "Mode: " + modeText + " | To refresh: " + toDo.size().toString() + " (with gifts: " + donorFound.toString() + ", blank: " + blankFound.toString() + ", oldest: " + oldestFound.toString() + ")";
+if(dryRun)
+{
+	summary = summary + " | DRY RUN, nothing written | first ids: " + sample;
+}
+else
+{
+	summary = summary + " | Updated: " + updatedCount.toString() + " | Skipped: " + skippedCount.toString() + " | Errors: " + errorCount.toString() + " " + errorIds;
+}
+info summary;
+return summary;
+}

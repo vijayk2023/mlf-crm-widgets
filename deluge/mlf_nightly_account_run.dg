@@ -1,0 +1,7 @@
+void schedule.mlf_nightly_account_run()
+{
+// Schedule wrapper (P15 / D21): Daily 02:30 Europe/London, after the Contact runs. Refreshes every Account with gifts,
+// then blank / oldest Accounts up to the 700 cap.
+summary = standalone.mlf_nightly_account_giving_refresh("nightly");
+info "Nightly account run complete. " + summary;
+}

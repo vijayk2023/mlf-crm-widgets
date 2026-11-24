@@ -1,0 +1,182 @@
+string standalone.mlf_aggregate_account_giving(String id,Bool stampEmpty)
+{
+	// P15 / D21 (2026-11-24): Account giving history. Same calculation and output fields as
+	// mlf_aggregate_contact_giving, but reads Donations by their Account lookup and writes the Account.
+	// Kept separate so the live Contact function is not changed (peer note: changes to it need explicit approval).
+	// Donations sit on either a Contact or an Account, never both (checked 2026-11-24), so nothing is double counted.
+	// stampEmpty true = Accounts without donations get £0 (D19 rule, applied to Accounts).
+	// Returns "Updated: ...", "Skipped: ..." or "ERROR: ...". Needs connection crm_coql (EU).
+	accountId = id.trim();
+	if(accountId == null || accountId == "")
+	{
+		return "Skipped: empty ID";
+	}
+	allDonations = List();
+	lastId = "0";
+	keepGoing = true;
+	readError = false;
+	pageStr = "0,1,2,3,4,5,6,7,8,9";
+	for each  pg in pageStr.toList()
+	{
+		if(keepGoing == true && readError == false)
+		{
+			q = "select id, Received_Amount, Gift_Aid_Amount, Donation_Date from Donation where (Account = " + accountId + " and id > " + lastId + ") order by id asc limit 200";
+			payload = Map();
+			payload.put("select_query", q);
+			pageRows = List();
+			pageOk = false;
+			tryStr = "1,2,3";
+			for each  tryNo in tryStr.toList()
+			{
+				if(pageOk == false)
+				{
+					resp = invokeurl
+					[
+						url :"https://www.zohoapis.eu/crm/v8/coql"
+						type :POST
+						parameters:payload.toString()
+						connection:"crm_coql"
+					];
+					respText = ifnull(resp, "").toString();
+					if(respText == "")
+					{
+						// empty response = no more donations
+						pageOk = true;
+					}
+					else if(respText.contains("data") && !respText.contains("error"))
+					{
+						pageRows = resp.get("data");
+						pageOk = true;
+					}
+				}
+			}
+			if(pageOk == false)
+			{
+				readError = true;
+			}
+			else
+			{
+				for each  r in pageRows
+				{
+					allDonations.add(r);
+					lastId = r.get("id").toString();
+				}
+				if(pageRows.size() < 200)
+				{
+					keepGoing = false;
+				}
+			}
+		}
+	}
+	if(readError == true)
+	{
+		return "ERROR: could not read donations for " + accountId;
+	}
+	// Safety cap: more than 2,000 donations would exceed Deluge's per-run statement limit (largest Account had 885 on 2026-11-24).
+	// Do not write a partial total; leave the Account unchanged and report it.
+	if(keepGoing == true)
+	{
+		return "Skipped: more than 2000 donations for " + accountId + ", not calculated";
+	}
+	// No donations: skipped unless stampEmpty is true
+	if(allDonations.size() == 0 && !stampEmpty)
+	{
+		return "Skipped: no donations for " + accountId;
+	}
+	// ---- from here on identical to mlf_aggregate_contact_giving ----
+	lifetimeTotal = 0.0;
+	giftAidTotal = 0.0;
+	lastDate = null;
+	lastAmount = 0.0;
+	ytdTotal = 0.0;
+	largestAmount = 0.0;
+	largestDate = null;
+	firstDate = null;
+	currentYear = zoho.currentdate.toString("yyyy");
+	yearMap = Map();
+	for each  don in allDonations
+	{
+		received = don.get("Received_Amount");
+		if(received == null || received == "")
+		{
+			received = "0";
+		}
+		received = received.toDecimal();
+		ga = don.get("Gift_Aid_Amount");
+		if(ga == null || ga == "")
+		{
+			ga = "0";
+		}
+		ga = ga.toDecimal();
+		donDate = don.get("Donation_Date");
+		if(donDate != null && donDate != "")
+		{
+			yr = donDate.toString().subString(0,4);
+			if(received != 0)
+			{
+				prev = yearMap.get(yr);
+				if(prev == null)
+				{
+					prev = 0.0;
+				}
+				yearMap.put(yr,prev + received);
+			}
+			if(yr == currentYear)
+			{
+				ytdTotal = ytdTotal + received;
+			}
+			if(received > 0)
+			{
+				if(lastDate == null || donDate.toDate() > lastDate.toDate())
+				{
+					lastDate = donDate;
+					lastAmount = received;
+				}
+				if(firstDate == null || donDate.toDate() < firstDate.toDate())
+				{
+					firstDate = donDate;
+				}
+				// Largest gift: higher amount wins; on a tie the more recent gift wins (same as the previous function)
+				if(largestDate == null || received > largestAmount || received == largestAmount && donDate.toDate() > largestDate.toDate())
+				{
+					largestAmount = received;
+					largestDate = donDate;
+				}
+			}
+		}
+		lifetimeTotal = lifetimeTotal + received;
+		giftAidTotal = giftAidTotal + ga;
+	}
+	sortedYears = yearMap.keys().sort();
+	yearBreakdown = "";
+	for each  yr in sortedYears
+	{
+		amt = yearMap.get(yr).round(2);
+		if(yearBreakdown == "")
+		{
+			yearBreakdown = yr + ": £" + amt.toString();
+		}
+		else
+		{
+			yearBreakdown = yearBreakdown + " | " + yr + ": £" + amt.toString();
+		}
+	}
+	today = zoho.currentdate.toString("yyyy-MM-dd");
+	updateMap = Map();
+	updateMap.put("Lifetime_Giving_Total",lifetimeTotal.round(2));
+	updateMap.put("Gift_Aid_Lifetime_Total",giftAidTotal.round(2));
+	updateMap.put("Last_Donation_Amount",lastAmount.round(2));
+	updateMap.put("Last_Donation_Date",lastDate);
+	updateMap.put("Giving_Year_Breakdown",yearBreakdown);
+	updateMap.put("Giving_Last_Updated",today);
+	updateMap.put("Giving_YTD_Total",ytdTotal.round(2));
+	updateMap.put("Largest_Donation_Amount",largestAmount.round(2));
+	updateMap.put("Largest_Donation_Date",largestDate);
+	updateMap.put("First_Donation_Date",firstDate);
+	updateResp = zoho.crm.updateRecord("Accounts",accountId,updateMap);
+	if(!updateResp.toString().contains(accountId))
+	{
+		return "ERROR: update failed for " + accountId + " | " + updateResp.toString();
+	}
+	return "Updated: " + accountId + " | Lifetime: £" + lifetimeTotal.round(2).toString() + " | YTD: £" + ytdTotal.round(2).toString() + " | Largest: £" + largestAmount.round(2).toString() + " on " + largestDate + " | First: " + firstDate + " | UpdateResp: " + updateResp.toString();
+}
