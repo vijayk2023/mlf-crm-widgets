@@ -34,6 +34,7 @@
 ## Current state (2026-11-24) - READ THIS FIRST
 - **Accounts now have a giving history (P15, D21).** Same 10 fields as Contacts, written by `mlf_aggregate_account_giving` (separate copy of the Contact calculation, by Account). Nightly `mlf_nightly_account_giving_refresh("nightly")` via schedule `mlf_nightly_account_0230` (Daily 02:30): all 447 Accounts with gifts + 253 blank/oldest. All 3,436 Accounts filled on 24/11 (2,989 at £0). Test Account: Visa Europe 901783000002330577 (baseline in WORKSPACE-PROGRESS section 3).
 - Two copies of the calculation now exist (Contact and Account): change both together until P18 merges them.
+- **Nightly Contact refresh has a statement budget (D22, P13 done):** 6 runs had stopped on the 200,000-statement limit; now each run keeps Contacts within ~150,000 estimated statements (30 per gift + 150 per Contact) and defers the rest. Extra schedule `mlf_nightly_changed_0300`. Check the Failures tab stays empty.
 
 ## Current state (2026-11-12)
 - **Nightly giving refresh is live (D20).** `mlf_nightly_giving_refresh` + wrappers on 3 Daily schedules: 01:00 changed (donors with new/edited donations + blank Lifetime Giving), 01:30 and 02:00 rolling (800 Contacts each, oldest `Giving_Last_Updated` first; Anonymous excluded). Every Contact is re-checked about every 2 weeks.

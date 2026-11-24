@@ -5,6 +5,9 @@ Newest first. One entry per meaningful change; commit labels follow `type(scope)
 Per-session status and next steps live in [sessions.md](sessions.md); the reasoning behind changes is in [decisions.md](decisions.md).
 
 ## 2026-11-24 (Session 5)
+- `crm` P13 (read-only): Schedules > Failures: 6 nightly statement-limit stops (rolling 13/11 x2, 18/11, 19/11 x2; changed 24/11); no data gap.
+- `fix(deluge)` 4ff2023: statement budget in `mlf_nightly_giving_refresh` (D22). Live code matched the repo before the paste; saved in Zoho (0 errors). Dry runs: rolling 601 of 800 (budget 149,760), changed 47 of 63. Real rolling run: 601 updated, 0 errors, 150 s.
+- `crm` (Claude, Chrome, user OK): schedule `mlf_nightly_changed_0300` -> `mlf_nightly_changed_run`, Daily 03:00 from 25/11/2026.
 - `crm` (Claude, MCP `createFields`, user OK): 10 Account giving fields (same API names/types as Contacts) on the Standard Account layout.
 - `feat(deluge)` dea4a31: `mlf_aggregate_account_giving`, `mlf_nightly_account_giving_refresh`, `mlf_nightly_account_run` (D21).
 - `crm` (Claude, Chrome, user OK): created the 3 functions in Zoho (Standalone, Standalone, Schedule; 0 errors). Dry run `nightly-dry`: 700 to refresh (447 with gifts, 253 blank), nothing written. Test: `mlf_aggregate_account_giving("901783000002330577", true)` on Visa Europe -> Updated, all fields match the offline calculation. Not scheduled yet.
