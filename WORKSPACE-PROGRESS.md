@@ -4,6 +4,8 @@
 
 Last updated: 2026-11-12 (Session 4: nightly giving refresh D20 live; blanks 0).
 
+> **2026-11-24:** pending items added from the peer feedback 24 Nov (`Critical list to do.xlsx`). Work order across projects: `../crm-requirements-assessment/PEER-FEEDBACK-SEQUENCE.md`.
+
 ---
 
 ## 1. PENDING (what is left)
@@ -14,6 +16,7 @@ Last updated: 2026-11-12 (Session 4: nightly giving refresh D20 live; blanks 0).
 3. **P14 (needs your export):** duplicate report: export Contacts (Record Id, Full Name, Email, Lifetime Giving Total, Last Donation Date, eTapestry ID) and give me the path; I build `data/duplicates_review.xlsx` offline (data/ is git-ignored).
 4. **P7 (you):** push the widgets repo: `! git -C projects/crm-giving-widgets push origin main`.
 5. Then P11 (Campaigns count), P6 (pem files), P9 (optional on-create rule).
+6. **Peer feedback 24 Nov (priority after import templates):** P15-P16 Account giving history, then P17-P19 soft credits.
 
 
 | # | Item | Needs | Where to look |
@@ -25,6 +28,11 @@ Last updated: 2026-11-12 (Session 4: nightly giving refresh D20 live; blanks 0).
 | P9 | Optional now: Contacts On Create rule, Lifetime Giving empty -> 0 (the nightly "changed" run already fills blanks within a day) | User OK | `sessions.md` |
 | P6 | Remove `cert.pem`/`key.pem` from git tracking; decide on untracked `widgets/income_stream/` | User OK | `sessions.md` |
 | P7 | Push this repo (commits d2e5a91, d504009 + docs are local only) | User pushes | repo |
+| P15 | **NEW (#12)** Account giving history: same giving fields as Contacts (lifetime, YTD, first/last gift, dates) on Accounts, filled by the nightly refresh (D20). About 3,587 Donations have an Account. Check statement limits; dry run, 1 Account, then batches with `trigger: []` | Field creation OK, then OK per step | `deluge/mlf_nightly_giving_refresh.dg`; CRM Accounts |
+| P16 | **NEW (#12 edge case)** When a soft credit points to a Contact or Account that does not exist yet, create it first (example: Visa Account `901783000002330577`). Decide whether that is manual (import step) or automatic | Your decision | `../crm-import-templates/` T20 |
+| P17 | **NEW (#6)** Soft credit amount: a field for how much of a gift is soft credited (e.g. GBP 30 of GBP 50). Design decisions (one or several credits per gift; backfill existing soft credits at 100%?) are Q6 in the requirements project. Fix field names early so the import templates can carry them (T21) | Decision (Nel), then field creation OK | `../crm-requirements-assessment/` Q6 |
+| P18 | **NEW (#6)** Giving history separates direct giving from soft credits with a total for each, on Contacts and Accounts; Lifetime Giving widget shows both. Examples to test: Murray Birt / Deutsche Bank, Emma Slatter / Visa | After P15, P17 | `widgets/`, `deluge/` |
+| P19 | **NEW (#6)** Benevity matched gifts: the Donation starts on the company Account and is soft credited to the employee Contact; check the giving functions count it once per side | Read-only test after P18 | `../crm-import-templates/` T20 |
 | ~~P8~~ | DONE 2026-11-10: real `changed` run filled the last 93 blanks (COQL blank count 0) | - | - |
 | ~~P10~~ | Dropped: `mlf_refresh_pages` redeploy not needed (nightly job replaces bulk batches) | - | - |
 | ~~P2/P3~~ | Superseded: old batches 2-5 of 27/10 FAILED on the statement limit (Failures tab); the rolling refresh re-checks every Contact about every 2 weeks; clean-up = P12 | - | - |
