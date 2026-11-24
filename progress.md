@@ -8,6 +8,8 @@ Per-session status and next steps live in [sessions.md](sessions.md); the reason
 - `crm` (Claude, MCP `createFields`, user OK): 10 Account giving fields (same API names/types as Contacts) on the Standard Account layout.
 - `feat(deluge)` dea4a31: `mlf_aggregate_account_giving`, `mlf_nightly_account_giving_refresh`, `mlf_nightly_account_run` (D21).
 - `crm` (Claude, Chrome, user OK): created the 3 functions in Zoho (Standalone, Standalone, Schedule; 0 errors). Dry run `nightly-dry`: 700 to refresh (447 with gifts, 253 blank), nothing written. Test: `mlf_aggregate_account_giving("901783000002330577", true)` on Visa Europe -> Updated, all fields match the offline calculation. Not scheduled yet.
+- `crm` (Claude, Chrome, user OK): 5 runs of `mlf_nightly_account_giving_refresh("blank")`: 700/700/700/700/635 updated, 0 errors. Result: 0 blank Accounts, 447 with totals, 2,989 at £0; Account Lifetime sum £13,972,263.96 = sum of Account Donations. Spot checks Gift Aid (885 gifts) and BP Foundation match COQL.
+- `crm` (Claude, Chrome, user OK): schedule `mlf_nightly_account_0230` -> `mlf_nightly_account_run`, Daily 02:30 Europe/London from 25/11/2026, never ends.
 
 ## 2026-11-12
 - `crm` check (read-only): nightly schedules ran: 1,721 Contacts stamped 11/11, 1,617 on 12/11; blank Lifetime Giving 0. Failures tab not yet read (P13).

@@ -31,7 +31,11 @@
 | Gillian Eatwell | 901783000002352993 | One £50 gift 2026-02-23: all of YTD, largest, first, last match it |
 
 ---
-## Current state (2026-11-12) - READ THIS FIRST
+## Current state (2026-11-24) - READ THIS FIRST
+- **Accounts now have a giving history (P15, D21).** Same 10 fields as Contacts, written by `mlf_aggregate_account_giving` (separate copy of the Contact calculation, by Account). Nightly `mlf_nightly_account_giving_refresh("nightly")` via schedule `mlf_nightly_account_0230` (Daily 02:30): all 447 Accounts with gifts + 253 blank/oldest. All 3,436 Accounts filled on 24/11 (2,989 at £0). Test Account: Visa Europe 901783000002330577 (baseline in WORKSPACE-PROGRESS section 3).
+- Two copies of the calculation now exist (Contact and Account): change both together until P18 merges them.
+
+## Current state (2026-11-12)
 - **Nightly giving refresh is live (D20).** `mlf_nightly_giving_refresh` + wrappers on 3 Daily schedules: 01:00 changed (donors with new/edited donations + blank Lifetime Giving), 01:30 and 02:00 rolling (800 Contacts each, oldest `Giving_Last_Updated` first; Anonymous excluded). Every Contact is re-checked about every 2 weeks.
 - Blank Lifetime Giving = 0 since 10/11. Stamped per day: 1,721 (11/11), 1,617 (12/11).
 - Watch: statement limit on rolling runs (Schedules > Failures) - P13.
@@ -59,7 +63,12 @@
 - **Widget:** the new version (zip `widgets/lifetime_giving/dist/lifetime_giving.zip`) is uploaded and verified on a populated contact.
 - **Bulk recalculation:** Contacts pages **1-9 done** (1,800 contacts; 1,521 updated, 279 skipped as never-donors) by running `mlf_refresh_pages` from the function editor. Pages 10-108 are covered by the batch functions: batch 1 = pages 10-20, batch 2 = 21-40, batch 3 = 41-60, batch 4 = 61-80, batch 5 = 81-108. Never-donors are skipped by design (D14).
 
-## Next steps (in order) - updated 2026-11-12
+## Next steps (in order) - updated 2026-11-24
+1. Read-only: first night of `mlf_nightly_account_0230` (Failures tab; 700 Accounts stamped). If it timed out, lower `maxAccounts` to 500 (user OK).
+2. P13 Contact nightly Failures (18/11 and 13/11 low).
+3. P16/P17 decisions, then P18 (direct vs soft-credit totals; widget on Accounts).
+
+## Next steps (in order) - 2026-11-12
 1. Read-only: Setup > Schedules > Failures for `mlf_nightly_*`; function Logs of `mlf_nightly_giving_refresh`; COQL stamped-yesterday count (expect ~1,600+). If a rolling run failed on the statement limit: propose cap 400 + rolling schedules 02:30/03:00 (user OK).
 2. User deletes obsolete schedules/functions (P12).
 3. Duplicate report once the user gives a Contacts export (P14).
@@ -87,6 +96,9 @@
 - External callers of the Zoho functions (Zapier, Make, REST) cannot be seen from Zoho's screens; none are known.
 
 ## Session log
+### 2026-11-24 - Account giving history P15/D21 (Opus 5.5)
+Created 10 Account giving fields (MCP), 3 functions (Chrome), dry run, Visa Europe test, 5 blank runs (3,435 Accounts, 0 errors), Daily 02:30 schedule. Totals reconcile to the penny with Account Donations. Next: first-night check, P13, P16/P17.
+
 ### 2026-10-26 - Giving widget enhancements (Sonnet 5.5)
 Done: added YTD / largest / first-gift to the widget and the calculation; created 4 Contact fields; moved Deluge into git; fixed £0/negative handling (D9) and the "no donation received" state (D10, D11); refactored to one shared function with thin wrappers (D12-D17); audited every caller of the old functions; deployed and tested the new functions in Zoho; replaced the donation-trigger workflow function; recalculated Contacts pages 1-9; created the five batch functions; wrote `docs/zoho-setup-guide.md` and `docs/audit-2026-10-26.md`.
 Handed back to the user: create the schedules, run them, verify, clean up.
