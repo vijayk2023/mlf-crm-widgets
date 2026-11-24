@@ -4,6 +4,11 @@ Newest first. One entry per meaningful change; commit labels follow `type(scope)
 (types `feat` `fix` `chore` `docs`; scopes `deluge` `widget` `crm` `docs`).
 Per-session status and next steps live in [sessions.md](sessions.md); the reasoning behind changes is in [decisions.md](decisions.md).
 
+## 2026-11-24 (Session 5)
+- `crm` (Claude, MCP `createFields`, user OK): 10 Account giving fields (same API names/types as Contacts) on the Standard Account layout.
+- `feat(deluge)` dea4a31: `mlf_aggregate_account_giving`, `mlf_nightly_account_giving_refresh`, `mlf_nightly_account_run` (D21).
+- `crm` (Claude, Chrome, user OK): created the 3 functions in Zoho (Standalone, Standalone, Schedule; 0 errors). Dry run `nightly-dry`: 700 to refresh (447 with gifts, 253 blank), nothing written. Test: `mlf_aggregate_account_giving("901783000002330577", true)` on Visa Europe -> Updated, all fields match the offline calculation. Not scheduled yet.
+
 ## 2026-11-12
 - `crm` check (read-only): nightly schedules ran: 1,721 Contacts stamped 11/11, 1,617 on 12/11; blank Lifetime Giving 0. Failures tab not yet read (P13).
 
