@@ -29,7 +29,7 @@ sample = "";
 sampleCount = 0;
 for each  p in pageSlots
 {
-	q = "select id, Received_Amount, Soft_Credit_Contact, Soft_Credit_Account from Donation where (((Soft_Credit_Contact is not null) or (Soft_Credit_Account is not null)) and (Soft_Credit_Amount is null) and (id > " + lastId + ")) order by id asc limit 200";
+	q = "select id, Received_Amount, Soft_Credit_Contact, Soft_Credit_Account from Donation where ((Soft_Credit_Contact is not null or Soft_Credit_Account is not null) and (Soft_Credit_Amount is null and id > " + lastId + ")) order by id asc limit 200";
 	payload = Map();
 	payload.put("select_query",q);
 	resp = invokeurl
