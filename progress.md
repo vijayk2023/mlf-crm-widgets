@@ -4,6 +4,10 @@ Newest first. One entry per meaningful change; commit labels follow `type(scope)
 (types `feat` `fix` `chore` `docs`; scopes `deluge` `widget` `crm` `docs`).
 Per-session status and next steps live in [sessions.md](sessions.md); the reasoning behind changes is in [decisions.md](decisions.md).
 
+## 2026-11-25 (Session 8) - P18 soft credit totals
+- `feat(deluge)` e8668f8, 74057b2 (user approved changing the 5 live functions, incl. paying-Account refresh in the trigger): Soft_Credit_Total in both aggregate functions; trigger refreshes payer Account + soft-credit Contact/Account; nightly runs pick up soft-credit recipients and budget for them; `softcredit` mode; widget entity-aware with soft credit panel.
+- `crm` step 1 deployed: `mlf_aggregate_contact_giving` (live code fingerprint = repo before paste; pasted code fingerprint = repo file; 0 errors; saved). Test runs: Jillian Atkins unchanged + Soft_Credit_Total 0; soft-credited test Contact 901783000002343763 direct £15,470.75 unchanged, Soft_Credit_Total £16,486.79 (10) = COQL expectation. Verified by COQL.
+
 ## 2026-11-25 (Session 6)
 - `crm` check (read-only): first night OK: 700 Accounts and 1,265 Contacts stamped 25/11; Failures tab has no entries from 25/11; blanks 0; test records unchanged.
 - `docs` D23: P16 - missing soft-credit Contact/Account created automatically.
