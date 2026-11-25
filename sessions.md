@@ -31,7 +31,13 @@
 | Gillian Eatwell | 901783000002352993 | One £50 gift 2026-02-23: all of YTD, largest, first, last match it |
 
 ---
-## Current state (2026-11-25, Session 7) - READ THIS FIRST
+## Current state (2026-11-25, Session 8) - READ THIS FIRST
+- **P18 deployed in Zoho except the widget (D25).** Live: `mlf_aggregate_contact_giving` and `mlf_aggregate_account_giving` write `Soft_Credit_Total` (blank Soft_Credit_Amount = whole gift); `mlf_donation_trigger_aggregation` also refreshes the payer Account and the soft-credit Contact/Account; `mlf_nightly_giving_refresh` picks up soft-credit Contacts in `changed`, counts soft credits in the budget, new mode `softcredit`; `mlf_nightly_account_giving_refresh` includes soft-credit Accounts. Every paste checked by fingerprint (live = repo before, editor = repo after), 0 errors.
+- Filled: 243 Contacts with Soft_Credit_Total, sum GBP 325,567.28 = their soft-credited gifts (only Anonymous blank, by design). Accounts: Visa Europe done; the other soft-credit Accounts fill at 02:30 on 26/11.
+- **Widget NOT deployed yet** (step 6): zip rebuilt in repo (`widgets/lifetime_giving/dist/lifetime_giving.zip`), entity-aware (Contacts/Accounts), soft credit panel + "Direct + soft credits".
+- Test records: test Contact 901783000002343763 (direct GBP 15,470.75, soft GBP 16,486.79 / 10 gifts); Visa Europe (direct GBP 22,281.06, soft GBP 1,140.66 / 19); test Contact 901783000002331815 soft GBP 0.
+
+## Current state (2026-11-25, Session 7)
 - **P17 done (D24):** Donation `Soft_Credit_Amount` created and filled at 100% on all 5,194 soft-credited Donations (GBP 433,120.42, 0 errors, trigger []). Contacts/Accounts `Soft_Credit_Total` created, still empty: P18 fills them (needs user OK to change the giving functions; a blank Soft_Credit_Amount should count as the whole gift).
 - Check on 26/11: nightly runs OK (5,194 Donations modified today, so the changed run sees many donors; budget defers); 223 new Accounts (A5) blank Lifetime Giving should be filled by 02:30.
 - One-off function `mlf_backfill_soft_credit_amount` stays in Zoho (fills blanks only); user may delete.
@@ -42,6 +48,11 @@
 - P17 waiting on Nel: `docs/Q6-soft-credit-questions-for-Nel.md` (worked examples from live data). Existing fields `Soft_Credit_Contact` (5,049 Donations) and `Soft_Credit_Account` (145); none has both. Recommendation: one per gift, backfill 100%, separate Soft Credit Total.
 - Licence paid_expiry 2026-11-28: if not renewed, schedules stop.
 - Claude in Chrome needs `/chrome` in the session before its tools appear.
+
+## Next steps (in order) - updated 2026-11-25 (Session 8)
+1. **FIRST: P18 step 6, widget.** (a) User uploads `widgets/lifetime_giving/dist/lifetime_giving.zip`: Setup > Developer Hub > Widgets > Lifetime Giving > Edit > upload > Index `/app/widget.html` > Save (the browser tool cannot attach project files). (b) Add the widget to the Accounts page (related list, like "ZohoMLF Lifetime Giving" on Contacts) - Claude in Chrome or the user. (c) Check on test Contact 901783000002343763 (soft credit panel GBP 16,486.79) and Visa Europe (GBP 1,140.66).
+2. 26/11 check: Failures tab (01:00/03:00 changed runs see ~1,566 donors, budgeted), Accounts blank Lifetime Giving 0 (223 A5 Accounts), all 17 soft-credit Accounts have Soft_Credit_Total, first real Donation after the trigger change refreshed its payer/soft-credit records.
+3. P19 (Benevity read-only test), then P12 (user deletes), P14 (export), P11, P9, P6.
 
 ## Next steps (in order) - updated 2026-11-25 (Session 7)
 1. Done 25/11: both repos pushed; Q6 note anonymised.
@@ -115,6 +126,8 @@
 - External callers of the Zoho functions (Zapier, Make, REST) cannot be seen from Zoho's screens; none are known.
 
 ## Session log
+### 2026-11-25 - P18 soft credit totals deployed (Opus 5.5)
+Code (repo): soft credits in both aggregate functions, trigger, both nightly functions, `softcredit` mode, widget for Contacts + Accounts (e8668f8, 74057b2, fix 398dffe). Zoho (Chrome, user OK per step): 5 functions saved after fingerprint checks; tests on 2 Contacts, Visa Europe and one Donation via the trigger; dry runs; `softcredit` fill 110 + 107 + 24 = 241 updated, 0 errors. Bug found by COQL check: Contacts refreshed earlier today by the old code were skipped as "done today" (24, GBP 16,003.82); fixed and filled. Localhost fetch into the Zoho page is blocked (CSP): paste via setValue + fingerprint instead. Widget upload left for next session (step 6).
 ### 2026-11-25 - P17 soft credit amount, D24 (Opus 5.5)
 Later: Q6 note anonymised (Employee A/B, Fundraiser C; commit 11f0408) and pushed. Older commits (f313394, 5ff3f00) still hold the names in git history: user chose NOT to rewrite history (2026-11-25). Keep donor names out of committed docs from now on (use labels or record ids).
 User decided Q6 A/A/A (D24). Created Donation `Soft_Credit_Amount` and Contacts/Accounts `Soft_Credit_Total` (MCP). New one-off `mlf_backfill_soft_credit_amount` in Zoho (Chrome); COQL bracket bug fixed after a 0-row dry run; dry run 5,194 / GBP 433,120.42; 1 test record then real run 5,193 updated, 0 errors, trigger []; verified by COQL. Health drift: 223 new A5 Accounts blank until the 02:30 run.
