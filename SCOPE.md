@@ -9,7 +9,7 @@ Show each donor's giving history on the Contact (Lifetime Giving widget) from to
 ## Out of scope (unless agreed)
 - Donation import/sync (see other projects); income_stream diagnostic widgets (untracked, undecided).
 
-## Goals and status (as of 2026-11-25)
+## Goals and status (as of 2026-11-25, Session 7)
 | Goal | Status |
 |---|---|
 | 1. Widget shows lifetime, YTD, Gift Aid, last/largest/first gift | Done, verified |
@@ -21,7 +21,7 @@ Show each donor's giving history on the Contact (Lifetime Giving widget) from to
 | 7. Nightly refresh keeps Last Donation Date / totals current for every Contact (D20) | Live from 11/11/2026; statement budget D22; Failures tab clean from 25/11 |
 | 8. Duplicate-contact report (review only) | Waiting for the user's Contacts export (P14) |
 | 9. Accounts carry the same giving history as Contacts (peer #12, D21) | Done 2026-11-24: fields, functions, all Accounts filled, nightly 02:30 schedule (first night clean 25/11); widget on Accounts later (P18) |
-| 10. Soft credits: separate totals, partial amount, Benevity (peer #6, P16-P19) | P16 decided (D23, automatic creation); P17 design waiting on Nel (Q6 note); P18/P19 build later |
+| 10. Soft credits: separate totals, partial amount, Benevity (peer #6, P16-P19) | P16 decided (D23, automatic creation); **P17 done 25/11 (D24): one per gift, Soft Credit Amount backfilled at 100% on 5,194 Donations, Soft Credit Total fields created**; P18 (totals + widget) and P19 next |
 
 ## Success criteria
 - Every donor Contact has correct totals; spot checks match COQL.

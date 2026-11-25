@@ -115,6 +115,8 @@
 - External callers of the Zoho functions (Zapier, Make, REST) cannot be seen from Zoho's screens; none are known.
 
 ## Session log
+### 2026-11-25 - P17 soft credit amount, D24 (Opus 5.5)
+User decided Q6 A/A/A (D24). Created Donation `Soft_Credit_Amount` and Contacts/Accounts `Soft_Credit_Total` (MCP). New one-off `mlf_backfill_soft_credit_amount` in Zoho (Chrome); COQL bracket bug fixed after a 0-row dry run; dry run 5,194 / GBP 433,120.42; 1 test record then real run 5,193 updated, 0 errors, trigger []; verified by COQL. Health drift: 223 new A5 Accounts blank until the 02:30 run.
 ### 2026-11-25 - First-night check, P16 decided, Q6 note (Opus 5.5)
 Read-only: org guard, health checks (no drift), Accounts 700 / Contacts 1,265 stamped, Failures tab clean (Chrome after /chrome). D23 (P16 automatic creation). Q6 note for Nel with live soft-credit examples. No Zoho writes. Push blocked (donor names in the note).
 ### 2026-11-24 - Account giving history P15/D21 (Opus 5.5)

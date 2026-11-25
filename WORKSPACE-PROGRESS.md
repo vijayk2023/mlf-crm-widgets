@@ -2,7 +2,7 @@
 
 > **START OF EVERY SESSION:** follow the routine in the root `CLAUDE.md`. This file is the dashboard-level view; the detailed handoff is `sessions.md` (read it), change log `progress.md`, reasons `decisions.md`. **NOTE:** named WORKSPACE-PROGRESS.md because `progress.md` (the change log) already exists and Windows treats the names as the same file. **END:** update sections 1, 2, 3, add a section 5 entry, update `sessions.md`/`progress.md`/`decisions.md`, the `PROJECTS.md` row, commit in THIS repo (and the workspace repo for `PROJECTS.md`).
 
-Last updated: 2026-11-25 (Session 6: first-night check by API, all OK; Failures tab clean; P13/P15 follow-ups closed).
+Last updated: 2026-11-25 (Session 7: P17 done - D24, soft credit fields created, Soft Credit Amount backfilled on 5,194 Donations).
 
 > **2026-11-24:** pending items added from the peer feedback 24 Nov (`Critical list to do.xlsx`). Work order across projects: `../crm-requirements-assessment/PEER-FEEDBACK-SEQUENCE.md`.
 
@@ -58,10 +58,11 @@ Last updated: 2026-11-25 (Session 6: first-night check by API, all OK; Failures 
 ---
 
 ## 3. CURRENT STATE
+**Soft credits (D24, 2026-11-25):** Donation `Soft_Credit_Amount` filled on all 5,194 soft-credited Donations (GBP 433,120.42 = sum of Received_Amount); Contacts/Accounts `Soft_Credit_Total` created, empty until P18. One-off standalone `mlf_backfill_soft_credit_amount` (dry/run) in Zoho; fills blanks only.
 Functions (14): `mlf_aggregate_contact_giving` (live = hardened 2026-10-27 version, repo synced 2026-11-10), `mlf_calculate_giving_history`, `mlf_donation_trigger_aggregation`, `mlf_refresh_pages`, `mlf_refresh_batch_1..5` (obsolete), `mlf_fill_blank_giving` (keep), `mlf_fill_blank_giving_run` (obsolete), **`mlf_nightly_giving_refresh`** (standalone, D20), **`mlf_nightly_changed_run`**, **`mlf_nightly_rolling_run`** (schedule wrappers). Button "Calculate Giving History" (Contacts). Workflow "Auto-Update Giving Summary" active.
 **Accounts (D21, 2026-11-24):** 10 giving fields (same API names as Contacts); functions `mlf_aggregate_account_giving` (standalone), `mlf_nightly_account_giving_refresh` (standalone; nightly/blank, -dry; cap 700), `mlf_nightly_account_run` (schedule). Schedule `mlf_nightly_account_0230` Daily 02:30 from 25/11/2026. 3,436 Accounts: 447 with totals, 2,989 £0, 0 blank. Accounts update the morning after a gift (no instant trigger).
 **Schedules (active, Daily, never end, from 11/11/2026):** `mlf_nightly_changed_0100` (01:00, changed run), `mlf_nightly_rolling_0130` (01:30) and `mlf_nightly_rolling_0200` (02:00) (rolling run); from 25/11 also `mlf_nightly_account_0230` (Accounts, D21) and `mlf_nightly_changed_0300` (second changed run, D22). Rolling runs now refresh ~600-800 Contacts each, limited by the statement budget (D22). Old one-off schedules (`mlf_fill_blank_giving_01..11`, `mlf_refresh_batch_1..5`) are off/completed; batches 2-5 actually failed on 27/10 (statement limit).
-**Counts:** 2026-11-25: Contacts stamped 1,265, Accounts 700 (first night), blanks 0, £0 9,906. 2026-11-10: 0 blank Lifetime Giving (after the real changed run: 99 updated, 0 errors). 2026-11-11: 1,721 Contacts stamped; 2026-11-12: 1,617 stamped; blank still 0. Function credits 25,500/day, ~25,100 unused on 10/11.
+**Counts:** 2026-11-25 (Session 7): 3,659 Accounts (+223 from A5, blank Lifetime Giving until the 02:30 run); Contacts £0 9,700 (230 org Contacts deleted by A5). 2026-11-25: Contacts stamped 1,265, Accounts 700 (first night), blanks 0, £0 9,906. 2026-11-10: 0 blank Lifetime Giving (after the real changed run: 99 updated, 0 errors). 2026-11-11: 1,721 Contacts stamped; 2026-11-12: 1,617 stamped; blank still 0. Function credits 25,500/day, ~25,100 unused on 10/11.
 **Note on "Last Donation Date empty":** ~9.8k Contacts (user's filter: Last Donation Date empty + Account empty) have no Donation linked at all (9,726 stamped £0; 9,773 are eTapestry contacts; user confirmed most are non-donors). Blank is correct for them; the rolling run re-checks them every ~2 weeks.
 
 ### Quick health checks (read-only)
@@ -126,6 +127,15 @@ Moved from `Zoho MLF Widget Projects/mlf-crm-widgets`; added CLAUDE/SCOPE/PROGRE
 - Gotcha: an Edit failed because an editor re-padded the pending table on disk; the next commit picked up that whitespace-only change.
 - Left: first-night check of the Account schedule; P13; P16/P17 decisions; P18 widget on Accounts.
 - P13 (same session): Failures tab read in Chrome: 6 nightly statement-limit stops since 11/11; analysed (no data gap; oldest refresh 11/11). User chose option B: statement budget (D22). Calibrated from the 24/11 failure (~25 statements per gift). Repo edit + commit 4ff2023, live code fingerprint matched the repo before the paste, saved (0 errors), dry runs rolling 601/800 and changed 47/63, one real rolling run 601 updated / 0 errors / 150 s (Contacts stamped today 1,680 -> 2,281), spot checks Tony Bennett £100, Leonard Silverston £25. Created schedule `mlf_nightly_changed_0300`. Side effects: 601 Contacts refreshed (correct values). The Run dialog kept the old argument once (triple-click did not clear it): an extra harmless dry run; clear with End + BackSpace.
+
+### Session 7 (2026-11-25, Opus 5.5) - P17 soft credit amount (D24)
+- Org guard OK (`org20111555823`; licence paid_expiry 2026-11-28). Health checks: test Contacts, Visa Europe, Contacts blank 0, stamped 25/11 1,267, Accounts stamped 700 all OK. **Drift:** 223 Accounts blank Lifetime Giving (all created 24-25/11 by A5; 236 Donations); Contacts £0 9,700 (was 9,906, likely the 230 deleted org Contacts). Expected to self-heal at 02:30 (blank slot 253).
+- User decided Q6 (A/A/A) = D24. Created by MCP `createFields`: Donation `Soft_Credit_Amount`, Contacts + Accounts `Soft_Credit_Total` (currency, 2 dp, tooltips).
+- Wrote `deluge/mlf_backfill_soft_credit_amount.dg`; created it in Zoho via Chrome (Standalone). Bug fixed: COQL with 3 conditions in one bracket -> HTTP 400 -> dry run 0 rows; now 2 per bracket. Dry run 5,194 / GBP 433,120.42 (= expected).
+- With user OK: test record 901783000002401129 (GBP 25, MCP updateRecords trigger []) verified; real run 5,193 updated, 0 errors, 31 s. Verified by COQL: 5,194 with amount, 0 blank, sums equal; no workflow fired (payer Contact not restamped).
+- Tools: Zoho CRM MCP (getOrganization 1, COQL ~20, getFields 3, createFields 3, updateRecords 1), Claude in Chrome (create/save/run function; tab closed). Skill used: claude-in-chrome. No agents, no deletions, nothing blocked. Side effect: 5,194 Donations have Modified_Time 25/11 (next changed run sees their donors; budget defers).
+- Shared lesson added to `shared/zoho-crm.md` (COQL bracket grammar; soft credit fields).
+- Left: 26/11 check (nightly runs, 223 Accounts filled); P18 (needs OK to change giving functions); P19; P12; P14; P11; P9; P6. Backfill function may be deleted by the user.
 
 ### Session 6 (2026-11-25, Opus 5.5) - First-night check (read-only)
 - Org guard `getOrganization` = `org20111555823` (MLF). Licence `paid_expiry` 2026-11-28 (dashboard said 25/11): flagged to the user.
