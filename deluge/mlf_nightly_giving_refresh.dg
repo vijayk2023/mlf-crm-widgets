@@ -217,7 +217,8 @@ else if(baseMode == "softcredit")
 			break;
 		}
 	}
-	// drop those already refreshed today (so a second run continues where the first stopped)
+	// drop those already refreshed today WITH a Soft_Credit_Total (so a second run continues where the first stopped;
+	// a Contact refreshed earlier today by the pre-P18 code still has a blank total and is kept)
 	doneToday = Map();
 	chunk = List();
 	counter = 0;
@@ -227,7 +228,7 @@ else if(baseMode == "softcredit")
 		counter = counter + 1;
 		if(chunk.size() == 50 || counter == toDo.size())
 		{
-			q = "select id from Contacts where (id in (" + chunk.toString(",") + ") and Giving_Last_Updated = '" + todayStr + "')";
+			q = "select id from Contacts where ((id in (" + chunk.toString(",") + ") and Giving_Last_Updated = '" + todayStr + "') and Soft_Credit_Total is not null)";
 			payload = Map();
 			payload.put("select_query",q);
 			resp = invokeurl
