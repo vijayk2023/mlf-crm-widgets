@@ -1,0 +1,157 @@
+string standalone.mlf_backfill_soft_credit_amount(String mode)
+{
+// One-off backfill (P17 / D24, 2026-11-25): every Donation with a Soft Credit Contact or Soft Credit Account
+// and a blank Soft_Credit_Amount gets Soft_Credit_Amount = Received_Amount (100% of the gift, today's meaning).
+// mode: "dry" = count and sample only, nothing written; "run" = write.
+// Writes in bulk PUT of 100 with trigger [] (no workflows fire). Re-runnable: fixed records drop out of the query.
+// Donations with a blank Received_Amount are skipped and listed. Needs connection crm_coql (EU).
+modeText = mode.trim().toLowerCase();
+if(modeText != "dry" && modeText != "run")
+{
+	return "ERROR: mode must be dry or run";
+}
+dryRun = modeText == "dry";
+headerMap = Map();
+headerMap.put("Content-Type","application/json");
+slotText = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35";
+pageSlots = slotText.toList(",");
+lastId = "0";
+found = 0;
+contactCredits = 0;
+accountCredits = 0;
+amountSum = 0.0;
+skippedIds = "";
+skippedCount = 0;
+updatedCount = 0;
+errorCount = 0;
+errorText = "";
+sample = "";
+sampleCount = 0;
+for each  p in pageSlots
+{
+	q = "select id, Received_Amount, Soft_Credit_Contact, Soft_Credit_Account from Donation where (((Soft_Credit_Contact is not null) or (Soft_Credit_Account is not null)) and (Soft_Credit_Amount is null) and (id > " + lastId + ")) order by id asc limit 200";
+	payload = Map();
+	payload.put("select_query",q);
+	resp = invokeurl
+	[
+		url :"https://www.zohoapis.eu/crm/v8/coql"
+		type :POST
+		parameters:payload.toString()
+		headers:headerMap
+		connection:"crm_coql"
+	];
+	rows = List();
+	if(resp.toString().contains("\"data\""))
+	{
+		rows = resp.get("data");
+	}
+	batch = List();
+	for each  row in rows
+	{
+		did = row.get("id").toString();
+		lastId = did;
+		amt = row.get("Received_Amount");
+		if(amt == null)
+		{
+			skippedCount = skippedCount + 1;
+			skippedIds = skippedIds + did + " ";
+		}
+		else
+		{
+			found = found + 1;
+			if(row.get("Soft_Credit_Contact") != null)
+			{
+				contactCredits = contactCredits + 1;
+			}
+			if(row.get("Soft_Credit_Account") != null)
+			{
+				accountCredits = accountCredits + 1;
+			}
+			amountSum = amountSum + amt.toDecimal();
+			if(sampleCount < 5)
+			{
+				sample = sample + did + "=" + amt.toString() + " ";
+				sampleCount = sampleCount + 1;
+			}
+			rec = Map();
+			rec.put("id",did);
+			rec.put("Soft_Credit_Amount",amt);
+			batch.add(rec);
+		}
+	}
+	if(dryRun == false && batch.size() > 0)
+	{
+		// split into two PUTs of at most 100
+		part1 = List();
+		part2 = List();
+		n = 0;
+		for each  r in batch
+		{
+			n = n + 1;
+			if(n <= 100)
+			{
+				part1.add(r);
+			}
+			else
+			{
+				part2.add(r);
+			}
+		}
+		parts = List();
+		parts.add(part1);
+		if(part2.size() > 0)
+		{
+			parts.add(part2);
+		}
+		for each  part in parts
+		{
+			body = Map();
+			body.put("data",part);
+			body.put("trigger",List());
+			putResp = invokeurl
+			[
+				url :"https://www.zohoapis.eu/crm/v8/Donation"
+				type :PUT
+				parameters:body.toString()
+				headers:headerMap
+				connection:"crm_coql"
+			];
+			results = List();
+			if(putResp.toString().contains("\"data\""))
+			{
+				results = putResp.get("data");
+			}
+			for each  res in results
+			{
+				if(res.get("code") == "SUCCESS")
+				{
+					updatedCount = updatedCount + 1;
+				}
+				else
+				{
+					errorCount = errorCount + 1;
+					if(errorCount <= 5)
+					{
+						errorText = errorText + res.toString() + " ";
+					}
+				}
+			}
+		}
+	}
+	if(rows.size() < 200)
+	{
+		break;
+	}
+}
+summary = "Mode: " + modeText + " | Found: " + found.toString() + " (contact credits " + contactCredits.toString() + ", account credits " + accountCredits.toString() + ") | Sum: " + amountSum.round(2).toString() + " | Skipped (no amount): " + skippedCount.toString() + " " + skippedIds;
+if(dryRun)
+{
+	summary = summary + " | DRY RUN, nothing written | sample: " + sample;
+}
+else
+{
+	summary = summary + " | Updated: " + updatedCount.toString() + " | Errors: " + errorCount.toString() + " " + errorText;
+}
+info summary;
+return summary;
+}
