@@ -12,7 +12,7 @@ Last updated: 2026-11-25 (Session 7: P17 done - D24, soft credit fields created,
 
 ### SUGGESTED NEXT (show this with the table below when the user says "resume the Lifetime Giving project")
 1. **DONE 2026-11-25:** first night checked (API + Failures tab in Chrome): no `mlf_nightly_*` failures from 25/11 (newest is the known 24/11 01:02 one); Accounts 700, Contacts 1,265 stamped. P13/P15 follow-ups closed. If an Account run ever times out, lower `maxAccounts` to 500 (your OK).
-0. **Push:** both repos have unpushed commits; push of the Q6 note (donor names) was blocked by the classifier: push yourself or ask for an anonymised copy.
+0. **DONE 25/11:** both repos pushed; Q6 note anonymised (history keeps the old names: user chose not to rewrite).
 2. **Licence:** Zoho shows paid_expiry 2026-11-28 (not 25/11); confirm renewal (requirements Q9) or the nightly schedules stop.
 3. **P17 DONE 25/11 (D24):** Soft Credit Amount filled on all 5,194 soft-credited Donations. **Next: P18** - Soft Credit Total on Contacts/Accounts + widget (changes the giving functions: needs your explicit OK). Check tomorrow: nightly runs OK after 5,194 Donations were modified; 223 new Accounts no longer blank.
 4. **P12 (you delete):** obsolete `mlf_fill_blank_giving_*` and `mlf_refresh_batch_*` schedules/functions.

@@ -44,7 +44,7 @@
 - Claude in Chrome needs `/chrome` in the session before its tools appear.
 
 ## Next steps (in order) - updated 2026-11-25 (Session 7)
-1. Push both repos (user decision: as is, or anonymise the Q6 note first).
+1. Done 25/11: both repos pushed; Q6 note anonymised.
 2. 26/11: check nightly runs + 223 blank Accounts filled. Tell import templates (T21): field names Soft Credit Contact / Account / Amount.
 3. P18 (direct vs soft-credit totals, widget on Accounts), P19.
 4. P12 user deletes old schedules; P14 needs Contacts export.
@@ -116,6 +116,7 @@
 
 ## Session log
 ### 2026-11-25 - P17 soft credit amount, D24 (Opus 5.5)
+Later: Q6 note anonymised (Employee A/B, Fundraiser C; commit 11f0408) and pushed. Older commits (f313394, 5ff3f00) still hold the names in git history: user chose NOT to rewrite history (2026-11-25). Keep donor names out of committed docs from now on (use labels or record ids).
 User decided Q6 A/A/A (D24). Created Donation `Soft_Credit_Amount` and Contacts/Accounts `Soft_Credit_Total` (MCP). New one-off `mlf_backfill_soft_credit_amount` in Zoho (Chrome); COQL bracket bug fixed after a 0-row dry run; dry run 5,194 / GBP 433,120.42; 1 test record then real run 5,193 updated, 0 errors, trigger []; verified by COQL. Health drift: 223 new A5 Accounts blank until the 02:30 run.
 ### 2026-11-25 - First-night check, P16 decided, Q6 note (Opus 5.5)
 Read-only: org guard, health checks (no drift), Accounts 700 / Contacts 1,265 stamped, Failures tab clean (Chrome after /chrome). D23 (P16 automatic creation). Q6 note for Nel with live soft-credit examples. No Zoho writes. Push blocked (donor names in the note).
