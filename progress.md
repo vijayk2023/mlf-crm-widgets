@@ -4,6 +4,11 @@ Newest first. One entry per meaningful change; commit labels follow `type(scope)
 (types `feat` `fix` `chore` `docs`; scopes `deluge` `widget` `crm` `docs`).
 Per-session status and next steps live in [sessions.md](sessions.md); the reasoning behind changes is in [decisions.md](decisions.md).
 
+## 2026-11-25 (Session 6)
+- `crm` check (read-only): first night OK: 700 Accounts and 1,265 Contacts stamped 25/11; Failures tab has no entries from 25/11; blanks 0; test records unchanged.
+- `docs` D23: P16 - missing soft-credit Contact/Account created automatically.
+- `docs` P17: `docs/Q6-soft-credit-questions-for-Nel.md` with worked examples (live COQL: 5,049 Soft_Credit_Contact, 145 Soft_Credit_Account, none both).
+
 ## 2026-11-24 (Session 5)
 - `crm` P13 (read-only): Schedules > Failures: 6 nightly statement-limit stops (rolling 13/11 x2, 18/11, 19/11 x2; changed 24/11); no data gap.
 - `fix(deluge)` 4ff2023: statement budget in `mlf_nightly_giving_refresh` (D22). Live code matched the repo before the paste; saved in Zoho (0 errors). Dry runs: rolling 601 of 800 (budget 149,760), changed 47 of 63. Real rolling run: 601 updated, 0 errors, 150 s.

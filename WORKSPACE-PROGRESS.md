@@ -12,8 +12,9 @@ Last updated: 2026-11-25 (Session 6: first-night check by API, all OK; Failures 
 
 ### SUGGESTED NEXT (show this with the table below when the user says "resume the Lifetime Giving project")
 1. **DONE 2026-11-25:** first night checked (API + Failures tab in Chrome): no `mlf_nightly_*` failures from 25/11 (newest is the known 24/11 01:02 one); Accounts 700, Contacts 1,265 stamped. P13/P15 follow-ups closed. If an Account run ever times out, lower `maxAccounts` to 500 (your OK).
+0. **Push:** both repos have unpushed commits; push of the Q6 note (donor names) was blocked by the classifier: push yourself or ask for an anonymised copy.
 2. **Licence:** Zoho shows paid_expiry 2026-11-28 (not 25/11); confirm renewal (requirements Q9) or the nightly schedules stop.
-3. **P16 / P17 (your decisions):** soft credit to a missing Contact/Account (manual vs automatic); soft credit amount field design (Q6 with Nel).
+3. **P17 (waiting on Nel):** walk through `docs/Q6-soft-credit-questions-for-Nel.md`; then OK to create Soft Credit Amount (+ Soft Credit Total). P16 decided (D23).
 4. **P12 (you delete):** obsolete `mlf_fill_blank_giving_*` and `mlf_refresh_batch_*` schedules/functions.
 5. **P14 (needs your export):** duplicate-contact report.
 6. Then P18 (direct vs soft-credit totals, widget on Accounts), P19, P11, P6, P9.
@@ -59,7 +60,7 @@ Last updated: 2026-11-25 (Session 6: first-night check by API, all OK; Failures 
 Functions (14): `mlf_aggregate_contact_giving` (live = hardened 2026-10-27 version, repo synced 2026-11-10), `mlf_calculate_giving_history`, `mlf_donation_trigger_aggregation`, `mlf_refresh_pages`, `mlf_refresh_batch_1..5` (obsolete), `mlf_fill_blank_giving` (keep), `mlf_fill_blank_giving_run` (obsolete), **`mlf_nightly_giving_refresh`** (standalone, D20), **`mlf_nightly_changed_run`**, **`mlf_nightly_rolling_run`** (schedule wrappers). Button "Calculate Giving History" (Contacts). Workflow "Auto-Update Giving Summary" active.
 **Accounts (D21, 2026-11-24):** 10 giving fields (same API names as Contacts); functions `mlf_aggregate_account_giving` (standalone), `mlf_nightly_account_giving_refresh` (standalone; nightly/blank, -dry; cap 700), `mlf_nightly_account_run` (schedule). Schedule `mlf_nightly_account_0230` Daily 02:30 from 25/11/2026. 3,436 Accounts: 447 with totals, 2,989 £0, 0 blank. Accounts update the morning after a gift (no instant trigger).
 **Schedules (active, Daily, never end, from 11/11/2026):** `mlf_nightly_changed_0100` (01:00, changed run), `mlf_nightly_rolling_0130` (01:30) and `mlf_nightly_rolling_0200` (02:00) (rolling run); from 25/11 also `mlf_nightly_account_0230` (Accounts, D21) and `mlf_nightly_changed_0300` (second changed run, D22). Rolling runs now refresh ~600-800 Contacts each, limited by the statement budget (D22). Old one-off schedules (`mlf_fill_blank_giving_01..11`, `mlf_refresh_batch_1..5`) are off/completed; batches 2-5 actually failed on 27/10 (statement limit).
-**Counts:** 2026-11-10: 0 blank Lifetime Giving (after the real changed run: 99 updated, 0 errors). 2026-11-11: 1,721 Contacts stamped; 2026-11-12: 1,617 stamped; blank still 0. Function credits 25,500/day, ~25,100 unused on 10/11.
+**Counts:** 2026-11-25: Contacts stamped 1,265, Accounts 700 (first night), blanks 0, £0 9,906. 2026-11-10: 0 blank Lifetime Giving (after the real changed run: 99 updated, 0 errors). 2026-11-11: 1,721 Contacts stamped; 2026-11-12: 1,617 stamped; blank still 0. Function credits 25,500/day, ~25,100 unused on 10/11.
 **Note on "Last Donation Date empty":** ~9.8k Contacts (user's filter: Last Donation Date empty + Account empty) have no Donation linked at all (9,726 stamped £0; 9,773 are eTapestry contacts; user confirmed most are non-donors). Blank is correct for them; the rolling run re-checks them every ~2 weeks.
 
 ### Quick health checks (read-only)
@@ -133,4 +134,5 @@ Moved from `Zoho MLF Widget Projects/mlf-crm-widgets`; added CLAUDE/SCOPE/PROGRE
 - Tools: Zoho CRM MCP (getOrganization x1, COQL x9), Claude in Chrome (read Failures tab, tab closed). No Zoho writes, no agents, no deletions, nothing blocked.
 - P16 decided by the user: automatic creation (D23).
 - Q6 questions written for Nel (`docs/Q6-soft-credit-questions-for-Nel.md`); checked existing fields Soft_Credit_Contact (5,049) / Soft_Credit_Account (145).
-- Left: P17 (Nel's answers); P12; P14; P18.
+- Note updated with worked examples (live soft-credit data). Push denied by the classifier (sensitive information: donor names in the note); not worked around.
+- Left: push decision; P17 (Nel's answers); P12; P14; P18.

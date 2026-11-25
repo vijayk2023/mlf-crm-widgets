@@ -9,7 +9,7 @@ Show each donor's giving history on the Contact (Lifetime Giving widget) from to
 ## Out of scope (unless agreed)
 - Donation import/sync (see other projects); income_stream diagnostic widgets (untracked, undecided).
 
-## Goals and status (as of 2026-11-24)
+## Goals and status (as of 2026-11-25)
 | Goal | Status |
 |---|---|
 | 1. Widget shows lifetime, YTD, Gift Aid, last/largest/first gift | Done, verified |
@@ -18,9 +18,10 @@ Show each donor's giving history on the Contact (Lifetime Giving widget) from to
 | 4. Bulk recalculation of all Contacts | Replaced by goal 7 (27/10 batches 2-5 had failed on the statement limit) |
 | 6. Every Contact has a Lifetime Giving value (£0 for never-donors) for Zoho Campaigns segments (D19) | Done: 0 blanks since 10/11; kept at 0 by the nightly changed run (on-create rule optional) |
 | 5. Edge cases (>200 donations, January YTD refresh) | >200 done (hardened function, up to 2,000); YTD fixed within ~2 weeks by goal 7 |
-| 7. Nightly refresh keeps Last Donation Date / totals current for every Contact (D20) | Live from 11/11/2026; verify Failures (P13) |
+| 7. Nightly refresh keeps Last Donation Date / totals current for every Contact (D20) | Live from 11/11/2026; statement budget D22; Failures tab clean from 25/11 |
 | 8. Duplicate-contact report (review only) | Waiting for the user's Contacts export (P14) |
-| 9. Accounts carry the same giving history as Contacts (peer #12, D21) | Done 2026-11-24: fields, functions, all Accounts filled, nightly 02:30 schedule; widget on Accounts later (P18) |
+| 9. Accounts carry the same giving history as Contacts (peer #12, D21) | Done 2026-11-24: fields, functions, all Accounts filled, nightly 02:30 schedule (first night clean 25/11); widget on Accounts later (P18) |
+| 10. Soft credits: separate totals, partial amount, Benevity (peer #6, P16-P19) | P16 decided (D23, automatic creation); P17 design waiting on Nel (Q6 note); P18/P19 build later |
 
 ## Success criteria
 - Every donor Contact has correct totals; spot checks match COQL.

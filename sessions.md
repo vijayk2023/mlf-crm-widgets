@@ -7,7 +7,7 @@
 
 **What this project is:** a Zoho CRM widget plus the Deluge functions behind it for the MicroLoan Foundation (MLF). The "Lifetime Giving" widget on a Contact shows: lifetime total, YTD, Gift Aid, last gift, largest gift, first gift, and giving by year. The numbers are stored on Contact fields and written by Deluge functions. Widget code is in `widgets/lifetime_giving/`; Deluge in `deluge/`; Zoho how-to in `docs/zoho-setup-guide.md`; why-we-did-it in `decisions.md`.
 
-**How the previous session ran (2026-11-10, docs closed 2026-11-12):** model **Claude Opus 5.5** (`claude-opus-5-5`), Claude Code in a Windows terminal (earlier: Sonnet 5.5 on 2026-10-26, Opus 5.5 on 2026-11-09). The user is non-technical-friendly: explain plainly, give numbered steps, keep answers short, show a table when comparing.
+**How the previous session ran (2026-11-25, Session 6):** model **Claude Opus 5.5** (`claude-opus-5-5`), Claude Code in a Windows terminal (earlier: Sonnet 5.5 on 2026-10-26, Opus 5.5 on 2026-11-09). The user is non-technical-friendly: explain plainly, give numbered steps, keep answers short, show a table when comparing.
 
 **Tools the previous session used (re-check they are connected):**
 - **Zoho CRM MCP** (`mcp__claude_ai_Zoho_CRM__*`) connected to the **MicroLoan org**, EU data centre. Good for `getFields`, `getRecord`, `executeCOQLQuery` (COQL has no `group by` on lookups), `createFields`. It **cannot** see functions, buttons, workflows or schedules.
@@ -16,7 +16,7 @@
 
 **Rules agreed with the user (do not break):**
 1. **Never delete anything in Zoho**; the user does deletions. Read-only audits are fine.
-2. Do not push to GitHub unless asked. The first push attempt was blocked by the permission classifier; the user ran `! git push origin main` themselves, later pushes worked when explicitly asked. If a push is denied, give the user the command, do not work around it.
+2. Do not push to GitHub unless asked. (2026-11-25: push of the Q6 note with donor names was blocked by the classifier as sensitive data; user to push or ask for an anonymised copy.) The first push attempt was blocked by the permission classifier; the user ran `! git push origin main` themselves, later pushes worked when explicitly asked. If a push is denied, give the user the command, do not work around it.
 3. Deluge files in `deluge/` are the source of truth. Edit the file, commit, then paste into Zoho. Commit labels: `type(scope): summary` (`feat fix chore docs`; `deluge widget crm docs`).
 4. Before ending a session update this file, `progress.md`, `decisions.md`.
 5. Do not try to get around a tool's blocked output (the JS tool blocks output that looks like code/cookie text); read via screenshots instead.
@@ -31,7 +31,20 @@
 | Gillian Eatwell | 901783000002352993 | One £50 gift 2026-02-23: all of YTD, largest, first, last match it |
 
 ---
-## Current state (2026-11-24) - READ THIS FIRST
+## Current state (2026-11-25) - READ THIS FIRST
+- First night of the Account schedule and the budgeted Contact runs was clean: Failures tab has nothing from 25/11; 700 Accounts and 1,265 Contacts stamped; test records unchanged. P13/P15 follow-ups closed.
+- P16 decided (D23): a soft credit to a missing Contact/Account creates it automatically (match by email / exact name first).
+- P17 waiting on Nel: `docs/Q6-soft-credit-questions-for-Nel.md` (worked examples from live data). Existing fields `Soft_Credit_Contact` (5,049 Donations) and `Soft_Credit_Account` (145); none has both. Recommendation: one per gift, backfill 100%, separate Soft Credit Total.
+- Licence paid_expiry 2026-11-28: if not renewed, schedules stop.
+- Claude in Chrome needs `/chrome` in the session before its tools appear.
+
+## Next steps (in order) - updated 2026-11-25
+1. Push both repos (user decision: as is, or anonymise the Q6 note first).
+2. P17: Nel's answers to Q6, then create Soft Credit Amount (+ Soft Credit Total fields) with user OK; templates T21.
+3. P18 (direct vs soft-credit totals, widget on Accounts), P19.
+4. P12 user deletes old schedules; P14 needs Contacts export.
+
+## Current state (2026-11-24)
 - **Accounts now have a giving history (P15, D21).** Same 10 fields as Contacts, written by `mlf_aggregate_account_giving` (separate copy of the Contact calculation, by Account). Nightly `mlf_nightly_account_giving_refresh("nightly")` via schedule `mlf_nightly_account_0230` (Daily 02:30): all 447 Accounts with gifts + 253 blank/oldest. All 3,436 Accounts filled on 24/11 (2,989 at £0). Test Account: Visa Europe 901783000002330577 (baseline in WORKSPACE-PROGRESS section 3).
 - Two copies of the calculation now exist (Contact and Account): change both together until P18 merges them.
 - **Nightly Contact refresh has a statement budget (D22, P13 done):** 6 runs had stopped on the 200,000-statement limit; now each run keeps Contacts within ~150,000 estimated statements (30 per gift + 150 per Contact) and defers the rest. Extra schedule `mlf_nightly_changed_0300`. Check the Failures tab stays empty.
@@ -97,6 +110,8 @@
 - External callers of the Zoho functions (Zapier, Make, REST) cannot be seen from Zoho's screens; none are known.
 
 ## Session log
+### 2026-11-25 - First-night check, P16 decided, Q6 note (Opus 5.5)
+Read-only: org guard, health checks (no drift), Accounts 700 / Contacts 1,265 stamped, Failures tab clean (Chrome after /chrome). D23 (P16 automatic creation). Q6 note for Nel with live soft-credit examples. No Zoho writes. Push blocked (donor names in the note).
 ### 2026-11-24 - Account giving history P15/D21 (Opus 5.5)
 Created 10 Account giving fields (MCP), 3 functions (Chrome), dry run, Visa Europe test, 5 blank runs (3,435 Accounts, 0 errors), Daily 02:30 schedule. Totals reconcile to the penny with Account Donations. Next: first-night check, P13, P16/P17.
 
