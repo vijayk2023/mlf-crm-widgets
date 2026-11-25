@@ -2,7 +2,7 @@
 
 > **START OF EVERY SESSION:** follow the routine in the root `CLAUDE.md`. This file is the dashboard-level view; the detailed handoff is `sessions.md` (read it), change log `progress.md`, reasons `decisions.md`. **NOTE:** named WORKSPACE-PROGRESS.md because `progress.md` (the change log) already exists and Windows treats the names as the same file. **END:** update sections 1, 2, 3, add a section 5 entry, update `sessions.md`/`progress.md`/`decisions.md`, the `PROJECTS.md` row, commit in THIS repo (and the workspace repo for `PROJECTS.md`).
 
-Last updated: 2026-11-25 (Session 6: first-night check by API, all OK; Failures tab still to read in Chrome).
+Last updated: 2026-11-25 (Session 6: first-night check by API, all OK; Failures tab clean; P13/P15 follow-ups closed).
 
 > **2026-11-24:** pending items added from the peer feedback 24 Nov (`Critical list to do.xlsx`). Work order across projects: `../crm-requirements-assessment/PEER-FEEDBACK-SEQUENCE.md`.
 
@@ -11,7 +11,7 @@ Last updated: 2026-11-25 (Session 6: first-night check by API, all OK; Failures 
 ## 1. PENDING (what is left)
 
 ### SUGGESTED NEXT (show this with the table below when the user says "resume the Lifetime Giving project")
-1. **Failures tab (read-only, needs Chrome) - recommended first:** first night 25/11 checked by API (Session 6): Accounts 700 stamped, Contacts 1,265 stamped (fits the D22 budget: ~600 per rolling run), the only Donation changed 24/11 was picked up, 0 blanks. Still to confirm in Chrome: Setup > Schedules > Failures has no new `mlf_nightly_*` entries from 25/11 (read with JS `document.body.innerText`). If an Account run ever times out, lower `maxAccounts` to 500 (your OK).
+1. **DONE 2026-11-25:** first night checked (API + Failures tab in Chrome): no `mlf_nightly_*` failures from 25/11 (newest is the known 24/11 01:02 one); Accounts 700, Contacts 1,265 stamped. P13/P15 follow-ups closed. If an Account run ever times out, lower `maxAccounts` to 500 (your OK).
 2. **Licence:** Zoho shows paid_expiry 2026-11-28 (not 25/11); confirm renewal (requirements Q9) or the nightly schedules stop.
 3. **P16 / P17 (your decisions):** soft credit to a missing Contact/Account (manual vs automatic); soft credit amount field design (Q6 with Nel).
 4. **P12 (you delete):** obsolete `mlf_fill_blank_giving_*` and `mlf_refresh_batch_*` schedules/functions.
@@ -128,6 +128,6 @@ Moved from `Zoho MLF Widget Projects/mlf-crm-widgets`; added CLAUDE/SCOPE/PROGRE
 - Org guard `getOrganization` = `org20111555823` (MLF). Licence `paid_expiry` 2026-11-28 (dashboard said 25/11): flagged to the user.
 - Health checks, no drift: Contacts blank 0, £0 9,906; stamped 24/11 2,281 (incl. Session 5 manual runs), 25/11 1,265 (expected under the D22 budget); Accounts stamped 25/11 = 700 (first `mlf_nightly_account_0230` run worked), Accounts blank 0; Visa Europe, Jillian Atkins, James Wilson, Titus Gwemende match baselines.
 - Changed-donor proxy: the only Donation modified 24/11-25/11 01:00 (901783000002425422) has its Contact stamped 25/11.
-- Not done: Schedules > Failures tab (Claude in Chrome not connected this session).
-- Tools: Zoho CRM MCP (getOrganization x1, COQL x9). No Zoho writes, no agents, no deletions, nothing blocked.
-- Left: Failures tab read; P16/P17 decisions; P12; P14; P18.
+- Failures tab (Chrome, after the user ran /chrome): newest entry is still `mlf_nightly_changed_0100` 24/11 01:02 (known, pre-D22); none from 25/11. P13 and P15 follow-ups closed.
+- Tools: Zoho CRM MCP (getOrganization x1, COQL x9), Claude in Chrome (read Failures tab, tab closed). No Zoho writes, no agents, no deletions, nothing blocked.
+- Left: P16/P17 decisions; P12; P14; P18.
