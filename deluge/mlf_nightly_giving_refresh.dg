@@ -7,16 +7,18 @@ string standalone.mlf_nightly_giving_refresh(String mode)
 //                plus Contacts whose Lifetime_Giving_Total is still blank.
 //   "rolling"  = the Contacts refreshed longest ago (never-stamped first), so every Contact is re-checked about every 2 weeks
 //                (fixes deleted or re-linked gifts and YTD after 1 January).
-//   add "-dry" ("changed-dry", "rolling-dry") to list what would be refreshed without writing anything.
+//   "softcredit" = every Contact that has a soft credit (P18 one-off fill of Soft_Credit_Total; 244 on 2026-11-25;
+//                re-runnable, skips Contacts already refreshed today).
+//   add "-dry" ("changed-dry", "rolling-dry", "softcredit-dry") to list what would be refreshed without writing anything.
 // Cap: 800 Contacts per run (5-minute limit) AND a statement budget of 150,000 estimated from gift counts (P13, 2026-11-24;
 // the 200,000-statement limit stopped 6 runs between 13/11 and 24/11). Anonymous (more than 2,000 donations) is always excluded.
 // Needs connection crm_coql (EU).
 modeText = mode.trim().toLowerCase();
 dryRun = modeText.endsWith("-dry");
 baseMode = modeText.replaceAll("-dry","");
-if(baseMode != "changed" && baseMode != "rolling")
+if(baseMode != "changed" && baseMode != "rolling" && baseMode != "softcredit")
 {
-	return "ERROR: mode must be changed, rolling, changed-dry or rolling-dry";
+	return "ERROR: mode must be changed, rolling or softcredit (optionally with -dry)";
 }
 anonId = "901783000002337928";
 maxContacts = 800;
@@ -172,6 +174,95 @@ if(baseMode == "changed")
 			}
 		}
 	}
+}
+else if(baseMode == "softcredit")
+{
+	// P18: every Contact with at least one soft credit, except those already refreshed today
+	offsetNo = 0;
+	for each  p in fourSlots
+	{
+		q = "select Soft_Credit_Contact, COUNT(id) from Donation where Soft_Credit_Contact is not null group by Soft_Credit_Contact limit " + offsetNo.toString() + ", 200";
+		payload = Map();
+		payload.put("select_query",q);
+		resp = invokeurl
+		[
+			url :"https://www.zohoapis.eu/crm/v8/coql"
+			type :POST
+			parameters:payload.toString()
+			headers:headerMap
+			connection:"crm_coql"
+		];
+		rows = List();
+		if(resp.toString().contains("\"data\""))
+		{
+			rows = resp.get("data");
+		}
+		for each  row in rows
+		{
+			sc = row.get("Soft_Credit_Contact");
+			if(sc != null)
+			{
+				cid = sc.get("id").toString();
+				if(seen.get(cid) == null)
+				{
+					seen.put(cid,"x");
+					changedFound = changedFound + 1;
+					toDo.add(cid);
+				}
+			}
+		}
+		offsetNo = offsetNo + 200;
+		if(rows.size() < 200)
+		{
+			break;
+		}
+	}
+	// drop those already refreshed today (so a second run continues where the first stopped)
+	doneToday = Map();
+	chunk = List();
+	counter = 0;
+	for each  cid in toDo
+	{
+		chunk.add(cid);
+		counter = counter + 1;
+		if(chunk.size() == 50 || counter == toDo.size())
+		{
+			q = "select id from Contacts where (id in (" + chunk.toString(",") + ") and Giving_Last_Updated = '" + todayStr + "')";
+			payload = Map();
+			payload.put("select_query",q);
+			resp = invokeurl
+			[
+				url :"https://www.zohoapis.eu/crm/v8/coql"
+				type :POST
+				parameters:payload.toString()
+				headers:headerMap
+				connection:"crm_coql"
+			];
+			doneRows = List();
+			if(resp.toString().contains("\"data\""))
+			{
+				doneRows = resp.get("data");
+			}
+			for each  row in doneRows
+			{
+				doneToday.put(row.get("id").toString(),"x");
+			}
+			chunk = List();
+		}
+	}
+	notDone = List();
+	for each  cid in toDo
+	{
+		if(doneToday.get(cid) == null)
+		{
+			notDone.add(cid);
+		}
+		else
+		{
+			alreadyToday = alreadyToday + 1;
+		}
+	}
+	toDo = notDone;
 }
 else
 {
@@ -362,7 +453,7 @@ for each  cid in toDo
 	}
 }
 summary = "Mode: " + modeText + " | Selected: " + selectedCount.toString() + " | To refresh: " + toDo.size().toString() + " (budget " + budgetUsed.toString() + " of " + budgetMax.toString() + ", deferred " + deferredCount.toString() + ", too big " + tooBigCount.toString() + ")";
-if(baseMode == "changed")
+if(baseMode == "changed" || baseMode == "softcredit")
 {
 	summary = summary + " (changed donors: " + changedFound.toString() + ", already done today: " + alreadyToday.toString() + ", blank: " + blankFound.toString() + ")";
 }
