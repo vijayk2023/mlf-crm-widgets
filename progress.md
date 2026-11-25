@@ -69,3 +69,10 @@ Per-session status and next steps live in [sessions.md](sessions.md); the reason
 - 3f66214 chore: remove node_modules from tracking
 - 5d1b737 chore: add root index.html to activate GitHub Pages
 - 2bebe5d feat: lifetime-giving widget
+
+## 2026-11-25 (Session 7) - P17 soft credit amount
+- D24 recorded (user: one per gift; backfill 100%; separate Soft Credit Total, Lifetime Giving stays direct).
+- Created by MCP `createFields`: Donation `Soft_Credit_Amount` (901783000005510001), Contacts `Soft_Credit_Total` (901783000005511001), Accounts `Soft_Credit_Total` (901783000005512001); currency, 2 dp.
+- New standalone `mlf_backfill_soft_credit_amount(mode)` (dry/run) created in Zoho; first dry run returned 0 because COQL rejected 3 conditions in one bracket (HTTP 400): fixed to 2 per bracket. Dry run: 5,194 / GBP 433,120.42.
+- Test record 901783000002401129 updated by API (trigger []) to GBP 25, verified. Real run: 5,193 updated, 0 errors, 31 s. COQL: 5,194 with amount, 0 blank, sums equal (GBP 433,120.42). Payer Contact Giving_Last_Updated unchanged (no workflow fired).
+- Health check drift noted: 223 Accounts created on 25/11 (A5 org Contacts) have blank Lifetime Giving; the 02:30 nightly run should fill them (blank slot 253).

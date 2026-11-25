@@ -31,16 +31,21 @@
 | Gillian Eatwell | 901783000002352993 | One £50 gift 2026-02-23: all of YTD, largest, first, last match it |
 
 ---
-## Current state (2026-11-25) - READ THIS FIRST
+## Current state (2026-11-25, Session 7) - READ THIS FIRST
+- **P17 done (D24):** Donation `Soft_Credit_Amount` created and filled at 100% on all 5,194 soft-credited Donations (GBP 433,120.42, 0 errors, trigger []). Contacts/Accounts `Soft_Credit_Total` created, still empty: P18 fills them (needs user OK to change the giving functions; a blank Soft_Credit_Amount should count as the whole gift).
+- Check on 26/11: nightly runs OK (5,194 Donations modified today, so the changed run sees many donors; budget defers); 223 new Accounts (A5) blank Lifetime Giving should be filled by 02:30.
+- One-off function `mlf_backfill_soft_credit_amount` stays in Zoho (fills blanks only); user may delete.
+
+## Current state (2026-11-25, Session 6)
 - First night of the Account schedule and the budgeted Contact runs was clean: Failures tab has nothing from 25/11; 700 Accounts and 1,265 Contacts stamped; test records unchanged. P13/P15 follow-ups closed.
 - P16 decided (D23): a soft credit to a missing Contact/Account creates it automatically (match by email / exact name first).
 - P17 waiting on Nel: `docs/Q6-soft-credit-questions-for-Nel.md` (worked examples from live data). Existing fields `Soft_Credit_Contact` (5,049 Donations) and `Soft_Credit_Account` (145); none has both. Recommendation: one per gift, backfill 100%, separate Soft Credit Total.
 - Licence paid_expiry 2026-11-28: if not renewed, schedules stop.
 - Claude in Chrome needs `/chrome` in the session before its tools appear.
 
-## Next steps (in order) - updated 2026-11-25
+## Next steps (in order) - updated 2026-11-25 (Session 7)
 1. Push both repos (user decision: as is, or anonymise the Q6 note first).
-2. P17: Nel's answers to Q6, then create Soft Credit Amount (+ Soft Credit Total fields) with user OK; templates T21.
+2. 26/11: check nightly runs + 223 blank Accounts filled. Tell import templates (T21): field names Soft Credit Contact / Account / Amount.
 3. P18 (direct vs soft-credit totals, widget on Accounts), P19.
 4. P12 user deletes old schedules; P14 needs Contacts export.
 
