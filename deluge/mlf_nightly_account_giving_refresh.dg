@@ -3,7 +3,7 @@ string standalone.mlf_nightly_account_giving_refresh(String mode)
 // Nightly Account giving refresh (P15 / D21, 2026-11-24). Calculation is done by standalone.mlf_aggregate_account_giving(id, true);
 // this function only decides WHICH Accounts to refresh.
 // mode:
-//   "nightly" = every Account that has at least one Donation (447 on 2026-11-24; small, so all of them every night,
+//   "nightly" = every Account that has at least one Donation or soft credit (P18) (447 on 2026-11-24; small, so all of them every night,
 //               which also keeps YTD right after 1 January), then fills the rest of the cap with Accounts whose
 //               Lifetime_Giving_Total is blank, then the Accounts refreshed longest ago (catches Accounts whose gifts were
 //               deleted or moved away).
@@ -31,12 +31,18 @@ oldestFound = 0;
 // 1. Accounts with at least one Donation (nightly only)
 if(baseMode == "nightly")
 {
+	// P18: Accounts with soft credits are included too (17 on 2026-11-25)
+	donorFields = List();
+	donorFields.add("Account");
+	donorFields.add("Soft_Credit_Account");
+	for each  df in donorFields
+	{
 	offsetNo = 0;
 	for each  p in pageSlots
 	{
 		if(toDo.size() < maxAccounts)
 		{
-			q = "select Account, COUNT(id) from Donation where Account is not null group by Account limit " + offsetNo.toString() + ", 200";
+			q = "select " + df + ", COUNT(id) from Donation where " + df + " is not null group by " + df + " limit " + offsetNo.toString() + ", 200";
 			payload = Map();
 			payload.put("select_query",q);
 			resp = invokeurl
@@ -54,7 +60,7 @@ if(baseMode == "nightly")
 			}
 			for each  row in rows
 			{
-				a = row.get("Account");
+				a = row.get(df);
 				if(a != null)
 				{
 					aid = a.get("id").toString();
@@ -72,6 +78,7 @@ if(baseMode == "nightly")
 				break;
 			}
 		}
+	}
 	}
 }
 // 2. Blank Lifetime Giving (both modes), then 3. oldest Giving_Last_Updated before today (nightly only)

@@ -34,12 +34,13 @@ alreadyToday = 0;
 blankFound = 0;
 if(baseMode == "changed")
 {
-	// 1. Contacts on Donations created/edited since yesterday 00:00 (up to 10 pages = 2,000 donations)
+	// 1. Contacts on Donations created/edited since yesterday 00:00 (up to 10 pages = 2,000 donations):
+	//    the paying Contact and (P18) the soft-credited Contact.
 	candidates = List();
 	lastId = "0";
 	for each  p in pageSlots
 	{
-		q = "select Contact from Donation where ((Modified_Time >= '" + sinceStr + "' and Contact is not null) and id > " + lastId + ") order by id asc limit 200";
+		q = "select Contact, Soft_Credit_Contact from Donation where (Modified_Time >= '" + sinceStr + "' and id > " + lastId + ") order by id asc limit 200";
 		payload = Map();
 		payload.put("select_query",q);
 		resp = invokeurl
@@ -62,6 +63,16 @@ if(baseMode == "changed")
 			if(c != null)
 			{
 				cid = c.get("id").toString();
+				if(seen.get(cid) == null)
+				{
+					seen.put(cid,"x");
+					candidates.add(cid);
+				}
+			}
+			sc = row.get("Soft_Credit_Contact");
+			if(sc != null)
+			{
+				cid = sc.get("id").toString();
 				if(seen.get(cid) == null)
 				{
 					seen.put(cid,"x");
@@ -210,7 +221,7 @@ else
 }
 // Statement budget (P13, 2026-11-24): Deluge stops a run at 200,000 statements, and the cost grows with each Contact's
 // number of gifts (about 25 statements per gift, measured on the 24/11 failure), not with the number of Contacts.
-// Count the gifts of every candidate (COQL group by, 50 ids per call) and keep Contacts in order until the estimate
+// Count the gifts (direct + soft credits, P18) of every candidate (COQL group by, 50 ids per call) and keep Contacts in order until the estimate
 // reaches budgetMax; the rest stay oldest/first in line for the next run. A single Contact above budgetMax is skipped.
 budgetMax = 150000;
 perGift = 30;
@@ -246,6 +257,37 @@ for each  cid in toDo
 			if(c != null)
 			{
 				giftCount.put(c.get("id").toString(),row.get("COUNT(id)").toString().toLong());
+			}
+		}
+		// P18: soft credits are read too, so count them in the estimate
+		q = "select Soft_Credit_Contact, COUNT(id) from Donation where Soft_Credit_Contact in (" + chunk.toString(",") + ") group by Soft_Credit_Contact limit 200";
+		payload = Map();
+		payload.put("select_query",q);
+		resp = invokeurl
+		[
+			url :"https://www.zohoapis.eu/crm/v8/coql"
+			type :POST
+			parameters:payload.toString()
+			headers:headerMap
+			connection:"crm_coql"
+		];
+		softRows = List();
+		if(resp.toString().contains("\"data\""))
+		{
+			softRows = resp.get("data");
+		}
+		for each  row in softRows
+		{
+			c = row.get("Soft_Credit_Contact");
+			if(c != null)
+			{
+				scid = c.get("id").toString();
+				prevG = giftCount.get(scid);
+				if(prevG == null)
+				{
+					prevG = 0;
+				}
+				giftCount.put(scid,prevG + row.get("COUNT(id)").toString().toLong());
 			}
 		}
 		chunk = List();

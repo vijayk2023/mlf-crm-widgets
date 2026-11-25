@@ -40,6 +40,10 @@ body {
 .wg-bar-track { flex: 1; height: 7px; background: #E4E0D8; border-radius: 4px; overflow: hidden; }
 .wg-bar-fill { height: 100%; width: 0; background: #3DAA7C; border-radius: 4px; transition: width 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
 .wg-bar-amt { font-size: 11px; font-weight: 500; color: #1C1C1C; text-align: right; min-width: 62px; flex-shrink: 0; }
+.wg-soft { margin-top: 14px; padding: 10px 12px; background: #EEF3F1; border-radius: 6px; display: flex; justify-content: space-between; align-items: baseline; }
+.wg-soft-val { font-size: 15px; font-weight: 600; color: #1B5E4F; }
+.wg-soft-label { font-size: 10px; color: #6B6760; line-height: 1.3; }
+.wg-combined { margin-top: 6px; font-size: 11px; color: #6B6760; text-align: right; }
 .wg-footer { margin-top: 18px; font-size: 10px; color: #C4BFB6; border-top: 1px solid #E4E0D8; padding-top: 10px; }
 </style>
 </head>
@@ -49,12 +53,13 @@ body {
     <div id="no-data">
         <div class="empty-icon">◎</div>
         <p class="empty-title" id="empty-title">No giving data yet</p>
-        <p class="empty-hint" id="empty-hint">Click <strong>Calculate Giving History</strong> on this Contact to generate the summary.</p>
+        <p class="empty-hint" id="empty-hint">The giving summary is filled overnight. On a Contact you can also click <strong>Calculate Giving History</strong>.</p>
     </div>
     <div id="widget"></div>
 </div>
 
 <script>
+var entityLabel = "Contact";
 function show(id) { document.getElementById(id).style.display = "block"; }
 function hide(id) { document.getElementById(id).style.display = "none"; }
 
@@ -62,7 +67,7 @@ function showEmpty(calculated, updated) {
     // "No donation" is only claimed when the summary has actually been calculated; otherwise the contact may simply not have been run yet
     if (calculated) {
         document.getElementById("empty-title").textContent = "No donation received to date";
-        document.getElementById("empty-hint").textContent = "Checked " + fmtDate(updated) + ". No gifts are recorded for this Contact.";
+        document.getElementById("empty-hint").textContent = "Checked " + fmtDate(updated) + ". No gifts or soft credits are recorded for this " + entityLabel + ".";
     }
     show("no-data");
 }
@@ -98,7 +103,7 @@ function renderWidget(d) {
 
     h += '<div class="wg-header">Lifetime Giving</div>';
     h += '<div class="wg-headline">' + fmt(lifetime) + '</div>';
-    h += '<div class="wg-headline-sub">total received</div>';
+    h += '<div class="wg-headline-sub">direct gifts received</div>';
 
     h += '<div class="wg-stats">';
     h += '<div class="wg-stat"><div class="wg-stat-val">' + fmt(d.ytd) + '</div><div class="wg-stat-label">Year to date</div></div>';
@@ -114,9 +119,15 @@ function renderWidget(d) {
     }
     h += '</div>';
 
+    // P18 (D24): soft credits = gifts paid by someone else and credited to this record; shown apart from direct giving
+    if (d.soft > 0) {
+        h += '<div class="wg-soft"><div><div class="wg-soft-val">' + fmt(d.soft) + '</div><div class="wg-soft-label">Soft credits (paid by others)</div></div></div>';
+        h += '<div class="wg-combined">Direct + soft credits: <strong>' + fmt(d.lifetime + d.soft) + '</strong></div>';
+    }
+
     if (years.length > 0) {
         h += '<div class="wg-divider"></div>';
-        h += '<div class="wg-chart-label">Giving by year</div>';
+        h += '<div class="wg-chart-label">Direct giving by year</div>';
         h += '<div class="wg-chart">';
         years.forEach(function(y) {
             var pct = ((y.amount / maxAmt) * 100).toFixed(1);
@@ -144,10 +155,13 @@ function renderWidget(d) {
 
 ZOHO.embeddedApp.on("PageLoad", async function(data) {
     var entityId = data.EntityId;
+    // Same widget on Contacts and Accounts (P18): both modules carry the same giving fields
+    var entity = data.Entity || "Contacts";
+    entityLabel = (entity === "Accounts") ? "Account" : "Contact";
 
     try {
         var resp = await ZOHO.CRM.API.getRecord({
-            Entity: "Contacts",
+            Entity: entity,
             RecordID: entityId
         });
 
@@ -169,13 +183,14 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
         var largestAmt  = parseFloat(rec.Largest_Donation_Amount)  || 0;
         var largestDate = rec.Largest_Donation_Date                || null;
         var firstDate   = rec.First_Donation_Date                  || null;
+        var soft        = parseFloat(rec.Soft_Credit_Total)        || 0;
 
         // Calculated (stamped) with nothing received: no positive gift and a zero or negative net total
-        if (updated && lifetime <= 0 && !firstDate) {
+        if (updated && lifetime <= 0 && !firstDate && soft <= 0) {
             showEmpty(true, updated);
             return;
         }
-        if (!updated && lifetime === 0 && !breakdown) {
+        if (!updated && lifetime === 0 && !breakdown && soft <= 0) {
             showEmpty(false);
             return;
         }
@@ -184,7 +199,8 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
             lifetime: lifetime, giftAid: giftAid, ytd: ytd,
             lastAmt: lastAmt, lastDate: lastDate,
             largestAmt: largestAmt, largestDate: largestDate,
-            firstDate: firstDate, breakdown: breakdown, updated: updated
+            firstDate: firstDate, breakdown: breakdown, updated: updated,
+            soft: soft
         });
 
     } catch(err) {

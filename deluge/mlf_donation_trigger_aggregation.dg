@@ -2,15 +2,38 @@ string automation.mlf_donation_trigger_aggregation(String donationId)
 {
 // Called by the workflow rule "Auto-Update Giving Summary" (Donation, create or edit, all donations).
 // Replaces the old copy of the full calculation (86 lines, same logic as the retired button functions).
+// P18 (2026-11-25): also refreshes the soft-credited Contact or Account (Soft_Credit_Total), and the paying Account,
+// so both sides of a soft-credited gift are current at once. A record that is no longer linked after an edit
+// (e.g. the soft credit moved to someone else) is corrected by the nightly refresh.
 don = zoho.crm.getRecordById("Donation",donationId);
 if(don == null)
 {
-    return "Skipped: donation not found";
+	return "Skipped: donation not found";
 }
+results = "";
 contact = don.get("Contact");
-if(contact == null || contact.get("id") == null)
+if(contact != null && contact.get("id") != null)
 {
-    return "Skipped: donation has no contact";
+	results = results + "Payer contact: " + standalone.mlf_aggregate_contact_giving(contact.get("id").toString(),true) + " || ";
 }
-return standalone.mlf_aggregate_contact_giving(contact.get("id").toString(),true);
+account = don.get("Account");
+if(account != null && account.get("id") != null)
+{
+	results = results + "Payer account: " + standalone.mlf_aggregate_account_giving(account.get("id").toString(),true) + " || ";
+}
+scContact = don.get("Soft_Credit_Contact");
+if(scContact != null && scContact.get("id") != null)
+{
+	results = results + "Soft credit contact: " + standalone.mlf_aggregate_contact_giving(scContact.get("id").toString(),true) + " || ";
+}
+scAccount = don.get("Soft_Credit_Account");
+if(scAccount != null && scAccount.get("id") != null)
+{
+	results = results + "Soft credit account: " + standalone.mlf_aggregate_account_giving(scAccount.get("id").toString(),true) + " || ";
+}
+if(results == "")
+{
+	return "Skipped: donation has no contact, account or soft credit";
+}
+return results;
 }

@@ -79,7 +79,86 @@ string standalone.mlf_aggregate_account_giving(String id,Bool stampEmpty)
 		return "Skipped: more than 2000 donations for " + accountId + ", not calculated";
 	}
 	// No donations: skipped unless stampEmpty is true
-	if(allDonations.size() == 0 && !stampEmpty)
+	// ---- P18 / D24 (2026-11-25): soft credits. Gifts paid by someone else and soft credited to this record. ----
+	// Counted separately in Soft_Credit_Total; they never change Lifetime Giving or the other direct-giving fields.
+	// Amount = Soft_Credit_Amount; a blank amount counts as the whole gift (Received_Amount), as agreed in D24.
+	// Read the same way as direct gifts: COQL paged by id, 3 tries per page, up to 1,000 rows (largest on 25/11: 152).
+	softTotal = 0.0;
+	softCount = 0;
+	softLastId = "0";
+	softGoing = true;
+	softSlots = "0,1,2,3,4";
+	for each  spg in softSlots.toList()
+	{
+		if(softGoing == true && readError == false)
+		{
+			sq = "select id, Received_Amount, Soft_Credit_Amount from Donation where (Soft_Credit_Account = " + accountId + " and id > " + softLastId + ") order by id asc limit 200";
+			sPayload = Map();
+			sPayload.put("select_query",sq);
+			sRows = List();
+			sOk = false;
+			sTryStr = "1,2,3";
+			for each  sTry in sTryStr.toList()
+			{
+				if(sOk == false)
+				{
+					sResp = invokeurl
+					[
+						url :"https://www.zohoapis.eu/crm/v8/coql"
+						type :POST
+						parameters:sPayload.toString()
+						connection:"crm_coql"
+					];
+					sText = ifnull(sResp,"").toString();
+					if(sText == "")
+					{
+						sOk = true;
+					}
+					else if(sText.contains("data") && !sText.contains("error"))
+					{
+						sRows = sResp.get("data");
+						sOk = true;
+					}
+				}
+			}
+			if(sOk == false)
+			{
+				readError = true;
+			}
+			else
+			{
+				for each  sr in sRows
+				{
+					sAmt = sr.get("Soft_Credit_Amount");
+					if(sAmt == null || sAmt == "")
+					{
+						sAmt = sr.get("Received_Amount");
+					}
+					if(sAmt == null || sAmt == "")
+					{
+						sAmt = "0";
+					}
+					softTotal = softTotal + sAmt.toDecimal();
+					softCount = softCount + 1;
+					softLastId = sr.get("id").toString();
+				}
+				if(sRows.size() < 200)
+				{
+					softGoing = false;
+				}
+			}
+		}
+	}
+	if(readError == true)
+	{
+		return "ERROR: could not read soft credits for " + accountId;
+	}
+	if(softGoing == true)
+	{
+		return "Skipped: more than 1000 soft credits for " + accountId + ", not calculated";
+	}
+	// No direct gifts and no soft credits: skipped unless stampEmpty is true
+	if(allDonations.size() == 0 && softCount == 0 && !stampEmpty)
 	{
 		return "Skipped: no donations for " + accountId;
 	}
@@ -173,10 +252,11 @@ string standalone.mlf_aggregate_account_giving(String id,Bool stampEmpty)
 	updateMap.put("Largest_Donation_Amount",largestAmount.round(2));
 	updateMap.put("Largest_Donation_Date",largestDate);
 	updateMap.put("First_Donation_Date",firstDate);
+	updateMap.put("Soft_Credit_Total",softTotal.round(2));
 	updateResp = zoho.crm.updateRecord("Accounts",accountId,updateMap);
 	if(!updateResp.toString().contains(accountId))
 	{
 		return "ERROR: update failed for " + accountId + " | " + updateResp.toString();
 	}
-	return "Updated: " + accountId + " | Lifetime: £" + lifetimeTotal.round(2).toString() + " | YTD: £" + ytdTotal.round(2).toString() + " | Largest: £" + largestAmount.round(2).toString() + " on " + largestDate + " | First: " + firstDate + " | UpdateResp: " + updateResp.toString();
+	return "Updated: " + accountId + " | Lifetime: £" + lifetimeTotal.round(2).toString() + " | YTD: £" + ytdTotal.round(2).toString() + " | Largest: £" + largestAmount.round(2).toString() + " on " + largestDate + " | First: " + firstDate + " | Soft credits: £" + softTotal.round(2).toString() + " (" + softCount.toString() + ") | UpdateResp: " + updateResp.toString();
 }
